@@ -1,0 +1,6 @@
+{
+  "name": "Personal Productivity & Finance Ledger",
+  "description": "A private, offline-first personal finance tracking and productivity operating system with accounts, budgets, tasks, habits, and focus timer.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
