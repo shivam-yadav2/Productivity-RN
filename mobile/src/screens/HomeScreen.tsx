@@ -110,38 +110,40 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       </View>
 
       {/* Main Financial Balance Hero Card */}
-      <LinearGradient
-        colors={['#18181b', '#09090b']}
-        className="rounded-2xl p-4 flex flex-col gap-3 border border-zinc-800"
-      >
-        <View className="flex-row items-center justify-between">
-          <Text className="text-xs font-medium text-zinc-400">Total Liquid Balance</Text>
-          <Pressable onPress={onNavigateToMoney} className="flex-row items-center gap-0.5">
-            <Text className="text-[11px] text-zinc-300">View Accounts</Text>
-            <ChevronRight size={14} color="#d4d4d8" />
-          </Pressable>
-        </View>
-
-        <Text className="text-3xl font-bold tracking-tight text-white">
-          {formatCurrency(totalBalanceMinor, currency)}
-        </Text>
-
-        <View className="flex-row justify-between pt-3 border-t border-zinc-800">
-          <View className="flex flex-col">
-            <Text className="text-[11px] text-zinc-400">Spent Today</Text>
-            <Text className="font-semibold text-zinc-100 mt-0.5">
-              {formatCurrency(todayAnalytics.totalExpenseMinor, currency)}
-            </Text>
+      {/* expo-linear-gradient's LinearGradient isn't a NativeWind-patched core component, so
+          className is silently ignored on it — rounding/padding/border must live on a wrapping
+          View instead, with LinearGradient only supplying the fill via inline style. */}
+      <View className="rounded-2xl border border-zinc-800 overflow-hidden">
+        <LinearGradient colors={['#18181b', '#09090b']} style={{ padding: 16, gap: 12 }}>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs font-medium text-zinc-400">Total Liquid Balance</Text>
+            <Pressable onPress={onNavigateToMoney} className="flex-row items-center gap-0.5">
+              <Text className="text-[11px] text-zinc-300">View Accounts</Text>
+              <ChevronRight size={14} color="#d4d4d8" />
+            </Pressable>
           </View>
 
-          <View className="flex flex-col items-end">
-            <Text className="text-[11px] text-zinc-400">Monthly Budget</Text>
-            <Text className="font-semibold text-zinc-100 mt-0.5">
-              {overall ? `${overall.percentage}% used` : 'No limit set'}
-            </Text>
+          <Text className="text-3xl font-bold tracking-tight text-white">
+            {formatCurrency(totalBalanceMinor, currency)}
+          </Text>
+
+          <View className="flex-row justify-between pt-3 border-t border-zinc-800">
+            <View className="flex flex-col">
+              <Text className="text-[11px] text-zinc-400">Spent Today</Text>
+              <Text className="font-semibold text-zinc-100 mt-0.5">
+                {formatCurrency(todayAnalytics.totalExpenseMinor, currency)}
+              </Text>
+            </View>
+
+            <View className="flex flex-col items-end">
+              <Text className="text-[11px] text-zinc-400">Monthly Budget</Text>
+              <Text className="font-semibold text-zinc-100 mt-0.5">
+                {overall ? `${overall.percentage}% used` : 'No limit set'}
+              </Text>
+            </View>
           </View>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
+      </View>
 
       {/* 4-Button Fast Action Toolbar */}
       <View className="flex-row gap-2">

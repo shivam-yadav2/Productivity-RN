@@ -1,6 +1,7 @@
 import './global.css';
 import React, { useState } from 'react';
-import { View, Text, Pressable, StatusBar } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Home, Wallet, CheckSquare, Settings, Lock, Moon, Sun } from 'lucide-react-native';
 import { DatabaseProvider, useDatabase } from './src/context/DatabaseContext';
@@ -11,6 +12,7 @@ import { MoneyScreen } from './src/screens/MoneyScreen';
 import { ProductivityScreen } from './src/screens/ProductivityScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { PinLockScreen } from './src/components/security/PinLockScreen';
+import { Logo } from './src/components/ui/Logo';
 
 import { ExpenseFormModal } from './src/components/finance/ExpenseFormModal';
 import { IncomeFormModal } from './src/components/finance/IncomeFormModal';
@@ -53,7 +55,12 @@ function MainApp() {
   const [focusTask, setFocusTask] = useState<Task | null>(null);
 
   if (isLocked) {
-    return <PinLockScreen />;
+    return (
+      <>
+        <StatusBar style="light" />
+        <PinLockScreen />
+      </>
+    );
   }
 
   const handleTabChange = (tab: TabType) => {
@@ -92,12 +99,17 @@ function MainApp() {
 
   return (
     <View className="flex-1 bg-zinc-100 dark:bg-zinc-950">
+      <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       {/* Top Application Bar */}
       <SafeAreaView edges={['top']} className="bg-white/95 dark:bg-zinc-900/95 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <View className="flex-row items-center justify-between px-4 py-2.5">
           <View className="flex-row items-center gap-2">
             <View className="w-7 h-7 rounded-xl bg-zinc-900 dark:bg-zinc-100 items-center justify-center">
-              <Text className="text-white dark:text-zinc-900 font-bold text-xs">P</Text>
+              <Logo
+                size={16}
+                color={resolvedTheme === 'dark' ? '#18181B' : '#FFFFFF'}
+                backdropColor={resolvedTheme === 'dark' ? '#F4F4F5' : '#18181B'}
+              />
             </View>
             <View className="flex flex-col">
               <Text className="text-xs font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Personal</Text>
@@ -300,7 +312,6 @@ function MainApp() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="default" />
       <ThemeProvider>
         <DatabaseProvider>
           <SecurityProvider>

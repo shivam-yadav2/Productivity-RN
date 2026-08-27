@@ -1,5 +1,14 @@
 import React from 'react';
-import { Modal as RNModal, View, Text, Pressable, ScrollView } from 'react-native';
+import {
+  Modal as RNModal,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import { X } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { cn } from '../../utils/cn';
@@ -13,6 +22,16 @@ interface ModalProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
+const MAX_WIDTH_PX: Record<NonNullable<ModalProps['maxWidth']>, number> = {
+  sm: 384,
+  md: 448,
+  lg: 512,
+  xl: 576,
+};
+
+// Matches the Tailwind `sm:` breakpoint the web version keyed its bottom-sheet vs. centered-dialog behavior on.
+const BREAKPOINT_SM = 640;
+
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -21,50 +40,60 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'md',
 }) => {
-  const maxW = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-  };
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isSmallScreen = screenWidth < BREAKPOINT_SM;
+  // Computed explicitly rather than via `w-full`+`max-w-*`+`self-stretch` classes: on a flex
+  // cross-axis, a stretched item clamped by max-width doesn't get re-centered by most engines —
+  // it stays anchored to the start edge, leaving empty space on the other side. An explicit
+  // width + alignSelf sidesteps that ambiguity entirely.
+  const dialogWidth = isSmallScreen ? screenWidth : Math.min(screenWidth, MAX_WIDTH_PX[maxWidth]);
 
   return (
     <RNModal visible={isOpen} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 justify-end sm:justify-center items-center">
-        <Pressable className="absolute inset-0" onPress={onClose}>
-          <BlurView intensity={20} tint="dark" style={{ flex: 1 }} />
-        </Pressable>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        <View className="flex-1 items-center" style={{ justifyContent: isSmallScreen ? 'flex-end' : 'center' }}>
+          <Pressable className="absolute inset-0" onPress={onClose}>
+            <BlurView intensity={20} tint="dark" style={{ flex: 1 }} />
+          </Pressable>
 
-        <View
-          className={cn(
-            'relative w-full bg-white dark:bg-zinc-900 border-t sm:border border-zinc-200 dark:border-zinc-800 rounded-t-3xl sm:rounded-2xl overflow-hidden z-10 self-stretch sm:self-center',
-            maxW[maxWidth]
-          )}
-          style={{ maxHeight: '92%' }}
-        >
-          {(title || description) && (
-            <View className="flex-row items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
-              <View className="flex-1 pr-3">
-                {title && (
-                  <Text className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</Text>
-                )}
-                {description && (
-                  <Text className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{description}</Text>
-                )}
+          <View
+            className={cn(
+              'relative bg-white dark:bg-zinc-900 overflow-hidden z-10',
+              isSmallScreen
+                ? 'border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl'
+                : 'border border-zinc-200 dark:border-zinc-800 rounded-2xl'
+            )}
+            style={{ width: dialogWidth, maxHeight: screenHeight * 0.92, alignSelf: 'center' }}
+          >
+            {(title || description) && (
+              <View className="flex-row items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+                <View className="flex-1 pr-3">
+                  {title && (
+                    <Text className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</Text>
+                  )}
+                  {description && (
+                    <Text className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{description}</Text>
+                  )}
+                </View>
+                <Pressable
+                  onPress={onClose}
+                  className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg"
+                  accessibilityLabel="Close dialog"
+                >
+                  <X size={20} color="#a1a1aa" />
+                </Pressable>
               </View>
-              <Pressable
-                onPress={onClose}
-                className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg"
-                accessibilityLabel="Close dialog"
-              >
-                <X size={20} color="#a1a1aa" />
-              </Pressable>
-            </View>
-          )}
+            )}
 
-          <ScrollView contentContainerStyle={{ padding: 20 }}>{children}</ScrollView>
+            <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+              {children}
+            </ScrollView>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </RNModal>
   );
 };
