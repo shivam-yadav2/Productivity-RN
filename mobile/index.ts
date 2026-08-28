@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler';
+import './src/utils/nativewindInterop';
 import { registerRootComponent } from 'expo';
 
 import App from './App';

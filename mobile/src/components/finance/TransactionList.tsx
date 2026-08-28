@@ -224,7 +224,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     key={tx.id}
                     className={i > 0 ? 'border-t border-[#F0F0EE] dark:border-[#2C2C29]' : ''}
                   >
-                    <TransactionItem transaction={tx} onPress={() => onSelectTransaction(tx)} />
+                    <TransactionItem transaction={tx} index={i} onPress={() => onSelectTransaction(tx)} />
                   </View>
                 ))}
               </View>

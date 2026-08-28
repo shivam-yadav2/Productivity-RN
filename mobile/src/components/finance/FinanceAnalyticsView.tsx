@@ -4,6 +4,8 @@ import { analyticsService } from '../../services/analyticsService';
 import { useDatabase } from '../../context/DatabaseContext';
 import { formatCurrency } from '../../utils/currency';
 import { IconHelper } from '../ui/IconHelper';
+import { AnimatedBar } from '../ui/AnimatedBar';
+import { FadeSwap } from '../ui/FadeSwap';
 import { cn } from '../../utils/cn';
 
 type Period = 'today' | 'week' | 'month' | 'last_month' | 'year' | 'all';
@@ -55,6 +57,8 @@ export const FinanceAnalyticsView: React.FC = () => {
         </View>
       </ScrollView>
 
+      <FadeSwap swapKey={period}>
+      <View className="flex-col gap-4">
       {/* Hero Financial Summary Cards */}
       <View className="flex-row gap-3">
         {/* Income Card */}
@@ -137,7 +141,7 @@ export const FinanceAnalyticsView: React.FC = () => {
           <Text className="text-xs text-[#71716E] py-3 text-center">No expense data in this period.</Text>
         ) : (
           <View className="flex-col gap-3">
-            {analytics.categoryBreakdown.map((cat) => (
+            {analytics.categoryBreakdown.map((cat, idx) => (
               <View key={cat.categoryId} className="flex-col gap-1">
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center gap-2 flex-1 min-w-0 pr-2">
@@ -161,15 +165,12 @@ export const FinanceAnalyticsView: React.FC = () => {
                 </View>
 
                 {/* Progress bar */}
-                <View className="w-full h-1 bg-[#F0F0EE] dark:bg-[#333330] rounded-full overflow-hidden">
-                  <View
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${Math.max(3, cat.percentage)}%`,
-                      backgroundColor: cat.categoryColor,
-                    }}
-                  />
-                </View>
+                <AnimatedBar
+                  percent={Math.max(3, cat.percentage)}
+                  delay={idx * 45}
+                  trackClassName="h-1 bg-[#F0F0EE] dark:bg-[#333330] rounded-full"
+                  fillColor={cat.categoryColor}
+                />
               </View>
             ))}
           </View>
@@ -210,6 +211,8 @@ export const FinanceAnalyticsView: React.FC = () => {
           </View>
         </View>
       )}
+      </View>
+      </FadeSwap>
     </View>
   );
 };

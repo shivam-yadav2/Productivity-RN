@@ -9,6 +9,8 @@ import { HabitCard } from '../components/productivity/HabitCard';
 import { FocusTimer } from '../components/productivity/FocusTimer';
 import { FocusAnalytics } from '../components/productivity/FocusAnalytics';
 import { Button, buttonTextColor } from '../components/ui/Button';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { FadeSwap } from '../components/ui/FadeSwap';
 import { cn } from '../utils/cn';
 
 interface ProductivityScreenProps {
@@ -99,30 +101,14 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
       </View>
 
       {/* Main Tab Navigation */}
-      <View className="flex-row items-center p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-2xl">
-        {tabs.map(({ key, label, icon: Icon }) => (
-          <Pressable
-            key={key}
-            onPress={() => setActiveTab(key)}
-            className={cn(
-              'flex-1 py-2 rounded-xl flex-row items-center justify-center gap-1.5',
-              activeTab === key ? 'bg-white dark:bg-zinc-900' : ''
-            )}
-          >
-            <Icon size={14} color={activeTab === key ? '#18181b' : '#71717a'} />
-            <Text
-              className={cn(
-                'text-xs font-bold',
-                activeTab === key ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'
-              )}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <SegmentedControl
+        segments={tabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon }))}
+        value={activeTab}
+        onChange={setActiveTab}
+      />
 
       {/* Tab Contents */}
+      <FadeSwap swapKey={activeTab}>
       {activeTab === 'TASKS' && (
         <View className="flex flex-col gap-3">
           <TaskQuickAdd />
@@ -156,8 +142,8 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
                 <Text className="text-xs text-zinc-500 mt-2">No tasks in this filter view.</Text>
               </View>
             ) : (
-              filteredTasks.map((t) => (
-                <TaskItem key={t.id} task={t} onClick={() => onSelectTask(t)} onStartFocus={() => handleStartFocus(t)} />
+              filteredTasks.map((t, i) => (
+                <TaskItem key={t.id} task={t} index={i} onClick={() => onSelectTask(t)} onStartFocus={() => handleStartFocus(t)} />
               ))
             )}
           </View>
@@ -181,7 +167,7 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
                 </Button>
               </View>
             ) : (
-              habits.map((h) => <HabitCard key={h.id} habit={h} onEdit={onEditHabit} />)
+              habits.map((h, i) => <HabitCard key={h.id} habit={h} index={i} onEdit={onEditHabit} />)
             )}
           </View>
         </View>
@@ -193,6 +179,7 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
           <FocusAnalytics />
         </View>
       )}
+      </FadeSwap>
     </ScrollView>
   );
 };

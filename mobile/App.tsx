@@ -1,6 +1,7 @@
 import './global.css';
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Home, Wallet, CheckSquare, Settings, Lock, Moon, Sun } from 'lucide-react-native';
@@ -13,6 +14,8 @@ import { ProductivityScreen } from './src/screens/ProductivityScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { PinLockScreen } from './src/components/security/PinLockScreen';
 import { Logo } from './src/components/ui/Logo';
+import { FadeSwap } from './src/components/ui/FadeSwap';
+import { TabBarButton } from './src/components/ui/TabBarButton';
 
 import { ExpenseFormModal } from './src/components/finance/ExpenseFormModal';
 import { IncomeFormModal } from './src/components/finance/IncomeFormModal';
@@ -25,7 +28,7 @@ import { RecurringManagerModal } from './src/components/finance/RecurringManager
 import { TaskDetailModal } from './src/components/productivity/TaskDetailModal';
 import { HabitFormModal } from './src/components/productivity/HabitFormModal';
 
-import { Transaction, Task, Habit } from './src/types';
+import { Transaction, Task, Habit } from './src/types'; 
 import { cn } from './src/utils/cn';
 import { audioService } from './src/services/audioService';
 
@@ -136,6 +139,7 @@ function MainApp() {
 
       {/* Main View Area */}
       <View className="flex-1 px-4 pt-3">
+       <FadeSwap swapKey={activeTab} fill>
         {activeTab === 'HOME' && (
           <HomeScreen
             onNavigateToMoney={() => handleTabChange('MONEY')}
@@ -215,30 +219,21 @@ function MainApp() {
             onOpenCategoriesManager={() => setIsCategoriesModalOpen(true)}
           />
         )}
+       </FadeSwap>
       </View>
 
       {/* Bottom Tab Bar */}
       <SafeAreaView edges={['bottom']} className="bg-white/95 dark:bg-zinc-900/95 border-t border-zinc-200/80 dark:border-zinc-800/80">
         <View className="flex-row items-center justify-around py-1.5 px-6">
           {tabs.map(({ key, label, icon: Icon }) => (
-            <Pressable
+            <TabBarButton
               key={key}
+              label={label}
+              icon={Icon}
+              active={activeTab === key}
+              isDark={resolvedTheme === 'dark'}
               onPress={() => handleTabChange(key)}
-              className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl"
-            >
-              <Icon
-                size={20}
-                color={activeTab === key ? (resolvedTheme === 'dark' ? '#f4f4f5' : '#18181b') : '#a1a1aa'}
-              />
-              <Text
-                className={cn(
-                  'text-[10px]',
-                  activeTab === key ? 'text-zinc-900 dark:text-zinc-100 font-bold' : 'text-zinc-400'
-                )}
-              >
-                {label}
-              </Text>
-            </Pressable>
+            />
           ))}
         </View>
       </SafeAreaView>
@@ -311,14 +306,16 @@ function MainApp() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <DatabaseProvider>
-          <SecurityProvider>
-            <MainApp />
-          </SecurityProvider>
-        </DatabaseProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <DatabaseProvider>
+            <SecurityProvider>
+              <MainApp />
+            </SecurityProvider>
+          </DatabaseProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

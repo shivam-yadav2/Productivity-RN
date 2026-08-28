@@ -1,10 +1,14 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Task } from '../../types';
 import { taskRepository } from '../../database/repositories/taskRepo';
 import { formatDateDisplay, formatTimeDisplay } from '../../utils/date';
 import { Check, Calendar, Play } from 'lucide-react-native';
 import { Badge } from '../ui/Badge';
+import { PressableScale } from '../ui/PressableScale';
+import { listItemEntering, listItemExiting, listItemLayout } from '../ui/listMotion';
+import { spring, useReducedMotion } from '../../utils/motion';
 import { audioService } from '../../services/audioService';
 import { cn } from '../../utils/cn';
 
@@ -12,10 +16,12 @@ interface TaskItemProps {
   task: Task;
   onClick: () => void;
   onStartFocus?: (task: Task) => void;
+  index?: number;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task, onClick, onStartFocus }) => {
+export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, onStartFocus, index = 0 }) => {
   const isCompleted = task.status === 'COMPLETED';
+  const reduced = useReducedMotion();
 
   const handleToggle = () => {
     taskRepository.toggleComplete(task.id);
@@ -35,8 +41,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onClick, onStartFocus 
   } as const;
 
   return (
-    <Pressable
+    <Animated.View
+      entering={reduced ? undefined : listItemEntering(index)}
+      exiting={reduced ? undefined : listItemExiting}
+      layout={reduced ? undefined : listItemLayout}
+    >
+    <PressableScale
       onPress={onClick}
+      activeScale={0.99}
+      dim={false}
       className={cn(
         'flex-row items-center justify-between p-3 rounded-xl border',
         isCompleted
@@ -47,13 +60,18 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onClick, onStartFocus 
       <View className="flex-row items-start gap-3 min-w-0 flex-1">
         <Pressable
           onPress={handleToggle}
+          hitSlop={8}
           className={cn(
             'w-5 h-5 rounded-lg border items-center justify-center mt-0.5 shrink-0',
             isCompleted ? 'bg-emerald-600 border-emerald-600' : 'border-zinc-300 dark:border-zinc-600'
           )}
           accessibilityLabel={isCompleted ? 'Mark incomplete' : 'Mark complete'}
         >
-          {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
+          {isCompleted && (
+            <Animated.View entering={reduced ? undefined : ZoomIn.springify().damping(spring.pop.damping).stiffness(spring.pop.stiffness)}>
+              <Check size={14} color="#fff" strokeWidth={3} />
+            </Animated.View>
+          )}
         </Pressable>
 
         <View className="flex flex-col min-w-0 flex-1">
@@ -101,6 +119,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onClick, onStartFocus 
           <Play size={16} color="#a1a1aa" fill="#a1a1aa" />
         </Pressable>
       )}
-    </Pressable>
+    </PressableScale>
+    </Animated.View>
   );
-};
+});
+
+TaskItem.displayName = 'TaskItem';

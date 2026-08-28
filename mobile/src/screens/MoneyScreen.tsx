@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   Plus,
   ArrowDownLeft,
@@ -18,6 +19,9 @@ import { TransactionList } from '../components/finance/TransactionList';
 import { FinanceAnalyticsView } from '../components/finance/FinanceAnalyticsView';
 import { BudgetCard } from '../components/finance/BudgetCard';
 import { IconHelper } from '../components/ui/IconHelper';
+import { AnimatedCurrency } from '../components/ui/AnimatedCurrency';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { FadeSwap } from '../components/ui/FadeSwap';
 import { Transaction } from '../types';
 import { cn } from '../utils/cn';
 
@@ -87,9 +91,12 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
           <View className="w-40 p-3.5 rounded-2xl bg-zinc-900 dark:bg-zinc-800 flex flex-col justify-between border border-zinc-800">
             <Text className="text-[11px] text-zinc-400 font-medium">Total Liquid Net</Text>
-            <Text className="text-base font-bold text-white mt-2" numberOfLines={1}>
-              {formatCurrency(totalBalanceMinor, currency)}
-            </Text>
+            <AnimatedCurrency
+              valueMinor={totalBalanceMinor}
+              currency={currency}
+              numberOfLines={1}
+              className="text-base font-bold text-white mt-2"
+            />
             <Text className="text-[10px] text-zinc-400 mt-1">{accounts.length} Active Accounts</Text>
           </View>
 
@@ -123,30 +130,14 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
         </ScrollView>
 
         {/* Main Tabs Navigation */}
-        <View className="flex-row items-center p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-2xl">
-          {tabs.map(({ key, label, icon: Icon }) => (
-            <Pressable
-              key={key}
-              onPress={() => setActiveTab(key)}
-              className={cn(
-                'flex-1 py-2 rounded-xl flex-row items-center justify-center gap-1.5',
-                activeTab === key ? 'bg-white dark:bg-zinc-900' : ''
-              )}
-            >
-              <Icon size={14} color={activeTab === key ? '#18181b' : '#71717a'} />
-              <Text
-                className={cn(
-                  'text-xs font-bold',
-                  activeTab === key ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'
-                )}
-              >
-                {label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <SegmentedControl
+          segments={tabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon }))}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
 
         {/* Tab Contents */}
+        <FadeSwap swapKey={activeTab}>
         {activeTab === 'TRANSACTIONS' && (
           <TransactionList
             onSelectTransaction={onSelectTransaction}
@@ -181,11 +172,16 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
             </Card>
           </View>
         )}
+        </FadeSwap>
       </ScrollView>
 
       {/* Pinned Bottom Action Toolbar */}
+      <Animated.View
+        entering={FadeInDown.springify().damping(20).mass(0.9)}
+        style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}
+      >
       <View
-        className="absolute bottom-4 left-4 right-4 flex-row items-center justify-end gap-2 bg-white/90 dark:bg-zinc-900/90 p-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80"
+        className="flex-row items-center justify-end gap-2 bg-white/90 dark:bg-zinc-900/90 p-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80"
         style={{ elevation: 6, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8 }}
       >
         <Button size="sm" variant="secondary" onPress={onOpenTransfer} className="rounded-xl px-3">
@@ -203,6 +199,7 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
           <Text className={cn('text-xs font-bold ml-1', buttonTextColor.primary)}>Expense</Text>
         </Button>
       </View>
+      </Animated.View>
     </View>
   );
 };

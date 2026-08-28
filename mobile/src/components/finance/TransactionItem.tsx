@@ -1,19 +1,25 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Transaction } from '../../types';
 import { useDatabase } from '../../context/DatabaseContext';
 import { formatCurrency } from '../../utils/currency';
 import { formatTimeDisplay } from '../../utils/date';
 import { IconHelper } from '../ui/IconHelper';
+import { PressableScale } from '../ui/PressableScale';
+import { listItemEntering, listItemExiting, listItemLayout } from '../ui/listMotion';
+import { useReducedMotion } from '../../utils/motion';
 import { ArrowLeftRight } from 'lucide-react-native';
 import { cn } from '../../utils/cn';
 
 interface TransactionItemProps {
   transaction: Transaction;
   onPress?: () => void;
+  index?: number;
 }
 
-export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onPress }) => {
+export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ transaction, onPress, index = 0 }) => {
+  const reduced = useReducedMotion();
   const { db } = useDatabase();
 
   const isExpense = transaction.type === 'EXPENSE';
@@ -29,9 +35,16 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, o
   const currency = sourceAccount?.currency || db.settings.currency || 'INR';
 
   return (
-    <Pressable
+    <Animated.View
+      entering={reduced ? undefined : listItemEntering(index)}
+      exiting={reduced ? undefined : listItemExiting}
+      layout={reduced ? undefined : listItemLayout}
+    >
+    <PressableScale
       onPress={onPress}
-      className="flex-row items-center justify-between p-3.5 active:bg-zinc-50 dark:active:bg-zinc-800/50 rounded-xl active:scale-[0.99]"
+      activeScale={0.99}
+      dim={false}
+      className="flex-row items-center justify-between p-3.5 rounded-xl"
     >
       <View className="flex-row items-center gap-3 flex-1 min-w-0 pr-3">
         {/* Category / Type Icon */}
@@ -101,6 +114,9 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, o
           </View>
         )}
       </View>
-    </Pressable>
+    </PressableScale>
+    </Animated.View>
   );
-};
+});
+
+TransactionItem.displayName = 'TransactionItem';

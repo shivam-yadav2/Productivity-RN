@@ -6,6 +6,8 @@ import { focusRepository } from '../../database/repositories/focusRepo';
 import { getTodayDateString, getCurrentTimeString } from '../../utils/date';
 import { audioService } from '../../services/audioService';
 import { Select } from '../ui/Select';
+import { SegmentedControl } from '../ui/SegmentedControl';
+import { AnimatedBar } from '../ui/AnimatedBar';
 import { Play, Pause, RotateCcw } from 'lucide-react-native';
 import { cn } from '../../utils/cn';
 
@@ -146,26 +148,13 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
         </Text>
       </View>
 
-      <View className="flex-row items-center gap-1 p-1 bg-[#F0F0EE] dark:bg-[#252523] rounded-md mb-6 border border-[#E5E5E2] dark:border-[#333330]">
-        {modeTabs.map((tab) => (
-          <Pressable
-            key={tab.key}
-            onPress={() => switchMode(tab.key)}
-            className={cn(
-              'px-3 py-1 rounded',
-              mode === tab.key && 'bg-white dark:bg-[#1A1A19]'
-            )}
-          >
-            <Text
-              className={cn(
-                'text-xs font-semibold',
-                mode === tab.key ? 'text-[#1A1A1A] dark:text-white' : 'text-[#71716E]'
-              )}
-            >
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
+      <View className="w-full mb-6">
+        <SegmentedControl
+          segments={modeTabs}
+          value={mode}
+          onChange={(m) => switchMode(m)}
+          size="sm"
+        />
       </View>
 
       <View className="flex flex-col items-center w-full py-2">
@@ -176,10 +165,12 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
           {selectedTask ? selectedTask.title : 'Deep work & mindfulness session'}
         </Text>
 
-        <View className="w-full bg-[#F0F0EE] dark:bg-[#252523] h-1.5 rounded-full overflow-hidden mb-6">
-          <View
-            className="bg-[#1A1A1A] dark:bg-[#EDEDEB] h-full rounded-full"
-            style={{ width: `${progressPercent}%` }}
+        <View className="w-full mb-6">
+          <AnimatedBar
+            percent={progressPercent}
+            durationMs={isRunning ? 1000 : 300}
+            trackClassName="bg-[#F0F0EE] dark:bg-[#252523] h-1.5 rounded-full"
+            fillColor={isDark ? '#EDEDEB' : '#1A1A1A'}
           />
         </View>
 

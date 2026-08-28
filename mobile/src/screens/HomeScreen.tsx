@@ -12,11 +12,11 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { useDatabase } from '../context/DatabaseContext';
-import { formatCurrency } from '../utils/currency';
 import { getTodayDateString, getGreetingTime, formatDateDisplay } from '../utils/date';
 import { budgetService } from '../services/budgetService';
 import { analyticsService } from '../services/analyticsService';
 import { Card } from '../components/ui/Card';
+import { AnimatedCurrency } from '../components/ui/AnimatedCurrency';
 import { TaskItem } from '../components/productivity/TaskItem';
 import { TaskQuickAdd } from '../components/productivity/TaskQuickAdd';
 import { HabitCard } from '../components/productivity/HabitCard';
@@ -123,16 +123,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </Pressable>
           </View>
 
-          <Text className="text-3xl font-bold tracking-tight text-white">
-            {formatCurrency(totalBalanceMinor, currency)}
-          </Text>
+          <AnimatedCurrency
+            valueMinor={totalBalanceMinor}
+            currency={currency}
+            className="text-3xl font-bold tracking-tight text-white"
+          />
 
           <View className="flex-row justify-between pt-3 border-t border-zinc-800">
             <View className="flex flex-col">
               <Text className="text-[11px] text-zinc-400">Spent Today</Text>
-              <Text className="font-semibold text-zinc-100 mt-0.5">
-                {formatCurrency(todayAnalytics.totalExpenseMinor, currency)}
-              </Text>
+              <AnimatedCurrency
+                valueMinor={todayAnalytics.totalExpenseMinor}
+                currency={currency}
+                className="font-semibold text-zinc-100 mt-0.5"
+              />
             </View>
 
             <View className="flex flex-col items-end">
@@ -187,10 +191,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </Text>
             </View>
           ) : (
-            todayTasks.map((t) => (
+            todayTasks.map((t, i) => (
               <TaskItem
                 key={t.id}
                 task={t}
+                index={i}
                 onClick={() => onSelectTask(t)}
                 onStartFocus={() => onStartFocusOnTask(t)}
               />
@@ -218,8 +223,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </View>
 
         <View className="flex flex-col gap-2">
-          {habits.slice(0, 3).map((h) => (
-            <HabitCard key={h.id} habit={h} onEdit={onEditHabit} />
+          {habits.slice(0, 3).map((h, i) => (
+            <HabitCard key={h.id} habit={h} index={i} onEdit={onEditHabit} />
           ))}
         </View>
       </View>
@@ -247,7 +252,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 key={tx.id}
                 className={i < recentTransactions.length - 1 ? 'border-b border-zinc-100 dark:border-zinc-800/60' : ''}
               >
-                <TransactionItem transaction={tx} onPress={() => onSelectTransaction(tx)} />
+                <TransactionItem transaction={tx} index={i} onPress={() => onSelectTransaction(tx)} />
               </View>
             ))}
           </View>

@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, useColorScheme } from 'react-native';
 import { budgetService } from '../../services/budgetService';
 import { useDatabase } from '../../context/DatabaseContext';
 import { formatCurrency } from '../../utils/currency';
 import { IconHelper } from '../ui/IconHelper';
+import { AnimatedBar } from '../ui/AnimatedBar';
 import { PiggyBank, Sliders } from 'lucide-react-native';
-import { cn } from '../../utils/cn';
 
 interface BudgetCardProps {
   onOpenBudgetManager: () => void;
@@ -13,7 +13,16 @@ interface BudgetCardProps {
 
 export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) => {
   const { db } = useDatabase();
+  const isDark = useColorScheme() === 'dark';
   const { overall, categories } = budgetService.getMonthlyBudgetStatuses();
+
+  /** Matches the bar colours the card used as Tailwind classes before they moved inline. */
+  const barColor = (isOver: boolean, percentage: number, muted: boolean) => {
+    if (isOver) return '#f43f5e';
+    if (percentage > 85) return '#f59e0b';
+    if (muted) return isDark ? '#999996' : '#71716E';
+    return isDark ? '#EDEDEB' : '#1A1A1A';
+  };
 
   if (!overall && categories.length === 0) {
     return (
@@ -61,15 +70,11 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) =
           </View>
 
           {/* Progress bar */}
-          <View className="w-full h-1.5 bg-[#E5E5E2] dark:bg-[#333330] rounded-full overflow-hidden">
-            <View
-              className={cn(
-                'h-full rounded-full',
-                overall.isOverBudget ? 'bg-rose-500' : overall.percentage > 85 ? 'bg-amber-500' : 'bg-[#1A1A1A] dark:bg-[#EDEDEB]'
-              )}
-              style={{ width: `${Math.min(100, overall.percentage)}%` }}
-            />
-          </View>
+          <AnimatedBar
+            percent={Math.min(100, overall.percentage)}
+            trackClassName="h-1.5 bg-[#E5E5E2] dark:bg-[#333330] rounded-full"
+            fillColor={barColor(overall.isOverBudget, overall.percentage, false)}
+          />
 
           <View className="flex-row items-center justify-between">
             <Text className="text-[11px] text-[#71716E]">{overall.percentage}% spent</Text>
@@ -85,7 +90,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) =
       {/* Category Budgets Sub-list */}
       {categories.length > 0 && (
         <View className="flex-col gap-2.5 pt-1">
-          {categories.slice(0, 3).map((catBudget) => (
+          {categories.slice(0, 3).map((catBudget, i) => (
             <View key={catBudget.id} className="flex-col gap-1">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1.5 flex-1 min-w-0 pr-2">
@@ -100,19 +105,12 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) =
                 </Text>
               </View>
 
-              <View className="w-full h-1 bg-[#F0F0EE] dark:bg-[#333330] rounded-full overflow-hidden">
-                <View
-                  className={cn(
-                    'h-full rounded-full',
-                    catBudget.isOverBudget
-                      ? 'bg-rose-500'
-                      : catBudget.percentage > 85
-                      ? 'bg-amber-500'
-                      : 'bg-[#71716E] dark:bg-[#999996]'
-                  )}
-                  style={{ width: `${Math.min(100, catBudget.percentage)}%` }}
-                />
-              </View>
+              <AnimatedBar
+                percent={Math.min(100, catBudget.percentage)}
+                delay={i * 60}
+                trackClassName="h-1 bg-[#F0F0EE] dark:bg-[#333330] rounded-full"
+                fillColor={barColor(catBudget.isOverBudget, catBudget.percentage, true)}
+              />
             </View>
           ))}
         </View>

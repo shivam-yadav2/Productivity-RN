@@ -188,7 +188,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              style={{ flex: 1 }}
               onPress={() => {
                 onClose();
                 onEdit(transaction);
@@ -200,7 +200,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              style={{ flex: 1 }}
               onPress={() => {
                 onClose();
                 onDuplicate(transaction);
@@ -209,7 +209,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               <Copy size={16} color="#27272a" />
               <Text className={buttonTextColor.outline}>Copy</Text>
             </Button>
-            <Button variant="danger" size="sm" className="flex-1" onPress={() => setShowDeleteConfirm(true)}>
+            <Button variant="danger" size="sm" style={{ flex: 1 }} onPress={() => setShowDeleteConfirm(true)}>
               <Trash2 size={16} color="#ffffff" />
               <Text className={buttonTextColor.danger}>Delete</Text>
             </Button>

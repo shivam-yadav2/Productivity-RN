@@ -1,14 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSecurity } from '../../context/SecurityContext';
 import { Fingerprint, Delete, Lock } from 'lucide-react-native';
+import { PressableScale } from '../ui/PressableScale';
+import { spring, timing, useReducedMotion } from '../../utils/motion';
 import { audioService } from '../../services/audioService';
 import { cn } from '../../utils/cn';
+
+/**
+ * Colours are inline rather than Tailwind classes because this element carries a
+ * Reanimated style, and the two can't share an element (src/utils/nativewindInterop.ts).
+ */
+const PinDot: React.FC<{ filled: boolean; error: boolean; reduced: boolean }> = ({ filled, error, reduced }) => {
+  const scale = useSharedValue(filled ? 1 : 0.55);
+
+  useEffect(() => {
+    scale.value = reduced ? (filled ? 1 : 0.55) : withSpring(filled ? 1 : 0.55, spring.pop);
+  }, [filled, reduced, scale]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  const fill = error ? '#f43f5e' : filled ? '#ffffff' : '#27272a';
+  const border = error ? '#f43f5e' : filled ? '#ffffff' : '#52525b';
+
+  return (
+    <Animated.View
+      style={[
+        { width: 16, height: 16, borderRadius: 999, borderWidth: 1, backgroundColor: fill, borderColor: border },
+        style,
+      ]}
+    />
+  );
+};
 
 export const PinLockScreen: React.FC = () => {
   const { unlockWithPin, unlockWithBiometrics, isBiometricsAvailable } = useSecurity();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
+  const reduced = useReducedMotion();
+
+  const shakeX = useSharedValue(0);
+  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shakeX.value }] }));
+
+  const triggerShake = () => {
+    if (reduced) return;
+    shakeX.value = withSequence(
+      withTiming(-10, { duration: 55 }),
+      withTiming(10, { duration: 55 }),
+      withTiming(-7, { duration: 55 }),
+      withTiming(7, { duration: 55 }),
+      withTiming(0, { duration: 55 })
+    );
+  };
 
   const handleDigit = (digit: string) => {
     if (pin.length < 4) {
@@ -25,6 +76,7 @@ export const PinLockScreen: React.FC = () => {
             audioService.triggerHaptic('success');
           } else {
             setError(true);
+            triggerShake();
             audioService.triggerHaptic('medium');
             setTimeout(() => {
               setPin('');
@@ -49,7 +101,10 @@ export const PinLockScreen: React.FC = () => {
   const digitKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <View className="flex-1 items-center justify-between p-6 bg-zinc-900">
+    <Animated.View
+      entering={reduced ? undefined : FadeIn.duration(timing.base.duration)}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between', padding: 24, backgroundColor: '#18181b' }}
+    >
       <View className="flex-1 items-center justify-center gap-4">
         <View className="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-700 items-center justify-center">
           <Lock size={32} color="#d4d4d8" />
@@ -61,24 +116,13 @@ export const PinLockScreen: React.FC = () => {
         </View>
 
         {/* PIN Dots */}
-        <View className="flex-row items-center gap-4 my-4">
-          {[0, 1, 2, 3].map((i) => {
-            const filled = pin.length > i;
-            return (
-              <View
-                key={i}
-                className={cn(
-                  'w-4 h-4 rounded-full border',
-                  error
-                    ? 'bg-rose-500 border-rose-500'
-                    : filled
-                    ? 'bg-white border-white'
-                    : 'border-zinc-600 bg-zinc-800'
-                )}
-              />
-            );
-          })}
-        </View>
+        <Animated.View style={rowStyle}>
+          <View className="flex-row items-center gap-4 my-4">
+            {[0, 1, 2, 3].map((i) => (
+              <PinDot key={i} filled={pin.length > i} error={error} reduced={reduced} />
+            ))}
+          </View>
+        </Animated.View>
 
         {error && <Text className="text-xs text-rose-400 font-semibold">Incorrect PIN</Text>}
       </View>
@@ -87,47 +131,53 @@ export const PinLockScreen: React.FC = () => {
       <View className="w-full max-w-xs pb-8">
         <View className="flex-row flex-wrap justify-between" style={{ rowGap: 12 }}>
           {digitKeys.map((d) => (
-            <Pressable
+            <PressableScale
               key={d}
               onPress={() => handleDigit(d)}
-              className="h-16 rounded-2xl bg-zinc-800/80 active:bg-zinc-600 items-center justify-center"
+              activeScale={0.92}
+              haptic
+              className="h-16 rounded-2xl bg-zinc-800/80 items-center justify-center"
               style={{ width: '30%' }}
             >
               <Text className="text-2xl font-bold font-mono text-zinc-100">{d}</Text>
-            </Pressable>
+            </PressableScale>
           ))}
 
           {isBiometricsAvailable ? (
-            <Pressable
+            <PressableScale
               onPress={handleBiometricPress}
-              className="h-16 rounded-2xl bg-zinc-800/40 active:bg-zinc-800 items-center justify-center"
+              activeScale={0.92}
+              className="h-16 rounded-2xl bg-zinc-800/40 items-center justify-center"
               style={{ width: '30%' }}
               accessibilityLabel="Unlock with biometrics"
             >
               <Fingerprint size={24} color="#a1a1aa" />
-            </Pressable>
+            </PressableScale>
           ) : (
             <View style={{ width: '30%' }} />
           )}
 
-          <Pressable
+          <PressableScale
             onPress={() => handleDigit('0')}
-            className="h-16 rounded-2xl bg-zinc-800/80 active:bg-zinc-600 items-center justify-center"
+            activeScale={0.92}
+            haptic
+            className="h-16 rounded-2xl bg-zinc-800/80 items-center justify-center"
             style={{ width: '30%' }}
           >
             <Text className="text-2xl font-bold font-mono text-zinc-100">0</Text>
-          </Pressable>
+          </PressableScale>
 
-          <Pressable
+          <PressableScale
             onPress={handleDelete}
-            className="h-16 rounded-2xl bg-zinc-800/40 active:bg-zinc-800 items-center justify-center"
+            activeScale={0.92}
+            className="h-16 rounded-2xl bg-zinc-800/40 items-center justify-center"
             style={{ width: '30%' }}
             accessibilityLabel="Delete digit"
           >
             <Delete size={24} color="#a1a1aa" />
-          </Pressable>
+          </PressableScale>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 };

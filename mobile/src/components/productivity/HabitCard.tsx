@@ -1,9 +1,13 @@
 import React from 'react';
 import { View, Text, Pressable, useColorScheme } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Habit } from '../../types';
 import { habitRepository } from '../../database/repositories/habitRepo';
 import { getTodayDateString, getPastDaysList, formatShortDay } from '../../utils/date';
 import { IconHelper } from '../ui/IconHelper';
+import { PressableScale } from '../ui/PressableScale';
+import { listItemEntering, listItemExiting, listItemLayout } from '../ui/listMotion';
+import { spring, useReducedMotion } from '../../utils/motion';
 import { Flame, Check, Edit2 } from 'lucide-react-native';
 import { audioService } from '../../services/audioService';
 import { cn } from '../../utils/cn';
@@ -11,10 +15,14 @@ import { cn } from '../../utils/cn';
 interface HabitCardProps {
   habit: Habit;
   onEdit: (habit: Habit) => void;
+  index?: number;
 }
 
-export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit }) => {
+const popIn = ZoomIn.springify().damping(spring.pop.damping).stiffness(spring.pop.stiffness);
+
+export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, index = 0 }) => {
   const isDark = useColorScheme() === 'dark';
+  const reduced = useReducedMotion();
   const todayStr = getTodayDateString();
   const stats = habitRepository.getStats(habit.id);
   const isCompletedToday = habitRepository.isCompletedToday(habit.id, todayStr);
@@ -37,6 +45,11 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit }) => {
   };
 
   return (
+    <Animated.View
+      entering={reduced ? undefined : listItemEntering(index)}
+      exiting={reduced ? undefined : listItemExiting}
+      layout={reduced ? undefined : listItemLayout}
+    >
     <View className="p-4 rounded-lg bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] flex flex-col gap-3">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 min-w-0 flex-1">
@@ -70,8 +83,9 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit }) => {
             <Edit2 size={14} color="#999996" />
           </Pressable>
 
-          <Pressable
+          <PressableScale
             onPress={handleToggleToday}
+            activeScale={0.9}
             className={cn(
               'w-8 h-8 rounded-md items-center justify-center shrink-0 border',
               isCompletedToday
@@ -80,8 +94,14 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit }) => {
             )}
             accessibilityLabel={isCompletedToday ? 'Completed today! Tap to undo' : 'Mark done for today'}
           >
-            <Check size={16} color={isCompletedToday ? (isDark ? '#1A1A1A' : '#fff') : '#999996'} strokeWidth={3} />
-          </Pressable>
+            {isCompletedToday ? (
+              <Animated.View key="done" entering={reduced ? undefined : popIn}>
+                <Check size={16} color={isDark ? '#1A1A1A' : '#fff'} strokeWidth={3} />
+              </Animated.View>
+            ) : (
+              <Check size={16} color="#999996" strokeWidth={3} />
+            )}
+          </PressableScale>
         </View>
       </View>
 
@@ -113,7 +133,9 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit }) => {
                 )}
               >
                 {isDone ? (
-                  <Check size={14} color={isDark ? '#1A1A1A' : '#fff'} strokeWidth={3} />
+                  <Animated.View key="done" entering={reduced ? undefined : popIn}>
+                    <Check size={14} color={isDark ? '#1A1A1A' : '#fff'} strokeWidth={3} />
+                  </Animated.View>
                 ) : (
                   <Text className="text-[10px] text-transparent">•</Text>
                 )}
@@ -123,5 +145,8 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit }) => {
         })}
       </View>
     </View>
+    </Animated.View>
   );
-};
+});
+
+HabitCard.displayName = 'HabitCard';
