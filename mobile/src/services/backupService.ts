@@ -146,7 +146,8 @@ export const backupService = {
     }
   },
 
+  /** Erases all user records. Restores factory accounts/categories but no demo rows. */
   resetDatabase(): void {
-    dbEngine.resetToFactoryDefaults();
+    dbEngine.resetAllData();
   },
 };

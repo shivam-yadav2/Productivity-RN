@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSecurity } from '../../context/SecurityContext';
 import { settingsRepository } from '../../database/repositories/settingsRepo';
 import { backupService } from '../../services/backupService';
+import { moneyManagerImport } from '../../services/moneyManagerImport';
 import { Card } from '../ui/Card';
 import { Button, buttonTextColor } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -16,6 +17,7 @@ import {
   Download,
   Upload,
   FileSpreadsheet,
+  FileUp,
   Trash2,
   Volume2,
   Vibrate,
@@ -53,6 +55,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [pinError, setPinError] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isImportingMM, setIsImportingMM] = useState(false);
 
   const accountOptions = Object.values(db.accounts).map((acc) => ({ label: acc.name, value: acc.id }));
 
@@ -94,6 +97,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       audioService.playSuccessTone();
     }
     Alert.alert(result.success ? 'Success' : 'Import Failed', result.message);
+  };
+
+  const handleImportMoneyManager = async () => {
+    setIsImportingMM(true);
+    try {
+      const result = await moneyManagerImport.pickAndImportMoneyManager();
+      if (result.success) audioService.playSuccessTone();
+      Alert.alert(result.success ? 'Import Complete' : 'Import Failed', result.message);
+    } finally {
+      setIsImportingMM(false);
+    }
   };
 
   const handleFactoryReset = () => {
@@ -298,6 +312,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <Text className={cn('text-xs font-semibold ml-1', buttonTextColor.secondary)}>Select File</Text>
           </Button>
         </View>
+
+        <View className="pt-3 mt-3 border-t border-zinc-100 dark:border-zinc-800 flex-row items-center justify-between">
+          <View className="flex-col flex-1 pr-2">
+            <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+              Import from Money Manager
+            </Text>
+            <Text className="text-[10px] text-zinc-400">
+              Its Excel/CSV export. Missing accounts and categories are created automatically, and
+              re-importing the same file will not duplicate rows.
+            </Text>
+          </View>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onPress={handleImportMoneyManager}
+            disabled={isImportingMM}
+          >
+            <FileUp size={14} color="#3f3f46" />
+            <Text className={cn('text-xs font-semibold ml-1', buttonTextColor.secondary)}>
+              {isImportingMM ? 'Importing…' : 'Import'}
+            </Text>
+          </Button>
+        </View>
       </Card>
 
       {/* Danger Zone */}
@@ -315,7 +353,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </Text>
             </View>
             <Text className="text-[11px] text-zinc-600 dark:text-zinc-400">
-              This will erase all accounts, transactions, tasks, and habits, and reload fresh initial data.
+              This permanently erases every transaction, task, habit, budget and recurring rule on
+              this device. Accounts and categories return to their defaults. This cannot be undone —
+              export a backup first if you need one.
             </Text>
             <View className="flex-row items-center gap-2 justify-end mt-1">
               <Button size="sm" variant="ghost" onPress={() => setShowResetConfirm(false)}>
@@ -332,7 +372,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
                 Factory Reset Database
               </Text>
-              <Text className="text-[10px] text-zinc-500">Restore factory defaults and clean state</Text>
+              <Text className="text-[10px] text-zinc-500">Erase all records and start from a clean slate</Text>
             </View>
             <Button size="sm" variant="danger" onPress={() => setShowResetConfirm(true)}>
               <Trash2 size={14} color="#ffffff" />

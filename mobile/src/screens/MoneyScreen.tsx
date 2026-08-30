@@ -180,23 +180,43 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
         entering={FadeInDown.springify().damping(20).mass(0.9)}
         style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}
       >
+      {/* Each button takes an equal third: `style` lands on Button's animated wrapper
+          (the flex item), while `className` styles the Pressable inside it. */}
       <View
-        className="flex-row items-center justify-end gap-2 bg-white/90 dark:bg-zinc-900/90 p-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80"
+        className="flex-row items-center gap-2 bg-white/90 dark:bg-zinc-900/90 p-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80"
         style={{ elevation: 6, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8 }}
       >
-        <Button size="sm" variant="secondary" onPress={onOpenTransfer} className="rounded-xl px-3">
+        <Button
+          size="sm"
+          variant="secondary"
+          onPress={onOpenTransfer}
+          className="rounded-xl px-2"
+          style={{ flex: 1 }}
+        >
           <ArrowLeftRight size={14} color="#2563eb" />
-          <Text className={cn('text-xs ml-1', buttonTextColor.secondary)}>Transfer</Text>
+          <Text numberOfLines={1} className={cn('text-xs ml-1', buttonTextColor.secondary)}>Transfer</Text>
         </Button>
 
-        <Button size="sm" variant="secondary" onPress={onOpenAddIncome} className="rounded-xl px-3">
+        <Button
+          size="sm"
+          variant="secondary"
+          onPress={onOpenAddIncome}
+          className="rounded-xl px-2"
+          style={{ flex: 1 }}
+        >
           <ArrowDownLeft size={14} color="#059669" />
-          <Text className={cn('text-xs ml-1', buttonTextColor.secondary)}>Income</Text>
+          <Text numberOfLines={1} className={cn('text-xs ml-1', buttonTextColor.secondary)}>Income</Text>
         </Button>
 
-        <Button size="sm" variant="primary" onPress={onOpenAddExpense} className="rounded-xl px-4">
+        <Button
+          size="sm"
+          variant="primary"
+          onPress={onOpenAddExpense}
+          className="rounded-xl px-2"
+          style={{ flex: 1 }}
+        >
           <Plus size={16} color="#ffffff" />
-          <Text className={cn('text-xs font-bold ml-1', buttonTextColor.primary)}>Expense</Text>
+          <Text numberOfLines={1} className={cn('text-xs font-bold ml-1', buttonTextColor.primary)}>Expense</Text>
         </Button>
       </View>
       </Animated.View>

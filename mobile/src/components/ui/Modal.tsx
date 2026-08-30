@@ -64,6 +64,11 @@ export const Modal: React.FC<ModalProps> = ({
 
   // Keep the sheet mounted through its exit animation.
   const [mounted, setMounted] = useState(isOpen);
+  // The sheet's measured height. The slide-up travels exactly this far, so the whole
+  // movement happens on screen. Translating by the full screen height instead (the
+  // obvious shortcut) parks a short sheet far below the fold, so most of the spring is
+  // spent invisible and the sheet appears to pop in late rather than glide up.
+  const sheetHeight = useSharedValue(0);
 
   // 0 = fully closed, 1 = fully open. Drives backdrop + the centered-dialog transform.
   const progress = useSharedValue(isOpen ? 1 : 0);
@@ -141,7 +146,8 @@ export const Modal: React.FC<ModalProps> = ({
 
   const sheetStyle = useAnimatedStyle(() => {
     if (isSmallScreen) {
-      const hidden = availableHeight;
+      // Fall back to the full height only until the first layout pass reports a real one.
+      const hidden = sheetHeight.value > 0 ? sheetHeight.value : availableHeight;
       const translateY = interpolate(progress.value, [0, 1], [hidden, 0], Extrapolation.CLAMP) + dragY.value;
       return { transform: [{ translateY }] };
     }
@@ -191,7 +197,14 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Reanimated style and NativeWind className can't share an element, so the
             sheet's surface colours are inline (see src/utils/nativewindInterop.ts). */}
         <Animated.View
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0) sheetHeight.value = h;
+          }}
           style={[
+            // Explicit off-screen start: the layout pass runs before the opening spring,
+            // so without this the sheet would paint one frame at its resting position.
+            isSmallScreen ? { transform: [{ translateY: availableHeight }] } : { opacity: 0 },
             {
               width: dialogWidth,
               maxHeight: maxDialogHeight,

@@ -57,14 +57,18 @@ class DatabaseEngine {
   }
 
   private getEmptyDatabase(): DatabaseTables {
+    // Copies, never references: reconcileAllAccountBalances() writes
+    // `currentBalanceMinor` straight onto these records, and sharing the objects with
+    // the DEFAULT_* module constants would let a running session permanently rewrite
+    // the factory defaults — so a later reset would restore already-mutated balances.
     const defaultCats: Record<string, Category> = {};
     [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES].forEach((c) => {
-      defaultCats[c.id] = c;
+      defaultCats[c.id] = { ...c };
     });
 
     const defaultAccs: Record<string, Account> = {};
     DEFAULT_ACCOUNTS.forEach((a) => {
-      defaultAccs[a.id] = a;
+      defaultAccs[a.id] = { ...a, currentBalanceMinor: a.openingBalanceMinor };
     });
 
     return {
@@ -487,12 +491,20 @@ class DatabaseEngine {
     this.reconcileAllAccountBalances();
   }
 
+  /**
+   * Erases every user record (transactions, tasks, habits, budgets, recurring rules,
+   * focus sessions) and restores the factory accounts, categories and settings.
+   * Deliberately does NOT re-seed the demo data — see resetToFactoryDefaults().
+   */
   public resetAllData(): void {
     this.tables = this.getEmptyDatabase();
     this.persist();
     this.notify();
   }
 
+  /** Wipes everything and re-seeds the demo transactions/tasks/habits. Used only for
+   *  a fresh install; "Reset Data" in Settings calls resetAllData() so the demo rows
+   *  don't reappear and make the reset look like it did nothing. */
   public resetToFactoryDefaults(): void {
     this.tables = this.getEmptyDatabase();
     this.seedInitialSampleData();
