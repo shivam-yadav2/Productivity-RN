@@ -22,6 +22,7 @@ import {
   FocusSession,
   AppSettings,
   BackupData,
+  AppDocument,
 } from '../types';
 import {
   DEFAULT_ACCOUNTS,
@@ -44,6 +45,7 @@ export interface DatabaseTables {
   habits: Record<string, Habit>;
   habitLogs: Record<string, HabitLog>;
   focusSessions: Record<string, FocusSession>;
+  documents: Record<string, AppDocument>;
   settings: AppSettings;
 }
 
@@ -81,6 +83,7 @@ class DatabaseEngine {
       habits: {},
       habitLogs: {},
       focusSessions: {},
+      documents: {},
       settings: { ...DEFAULT_SETTINGS },
     };
   }
@@ -495,9 +498,14 @@ class DatabaseEngine {
    * Erases every user record (transactions, tasks, habits, budgets, recurring rules,
    * focus sessions) and restores the factory accounts, categories and settings.
    * Deliberately does NOT re-seed the demo data — see resetToFactoryDefaults().
+   *
+   * Documents are carried over untouched: they're files on disk, not app data, and this
+   * table holds only their metadata — wiping it here would orphan the underlying files
+   * (nothing would ever delete them) rather than actually removing anything.
    */
   public resetAllData(): void {
-    this.tables = this.getEmptyDatabase();
+    const documents = this.tables.documents;
+    this.tables = { ...this.getEmptyDatabase(), documents };
     this.persist();
     this.notify();
   }
@@ -506,7 +514,8 @@ class DatabaseEngine {
    *  a fresh install; "Reset Data" in Settings calls resetAllData() so the demo rows
    *  don't reappear and make the reset look like it did nothing. */
   public resetToFactoryDefaults(): void {
-    this.tables = this.getEmptyDatabase();
+    const documents = this.tables.documents;
+    this.tables = { ...this.getEmptyDatabase(), documents };
     this.seedInitialSampleData();
     this.persist();
     this.notify();

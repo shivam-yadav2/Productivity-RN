@@ -4,13 +4,14 @@ import { View, Text, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Home, Wallet, CheckSquare, Settings, Lock, Moon, Sun } from 'lucide-react-native';
+import { Home, Wallet, CheckSquare, FolderOpen, Settings, Lock, Moon, Sun } from 'lucide-react-native';
 import { DatabaseProvider, useDatabase } from './src/context/DatabaseContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SecurityProvider, useSecurity } from './src/context/SecurityContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { MoneyScreen } from './src/screens/MoneyScreen';
 import { ProductivityScreen } from './src/screens/ProductivityScreen';
+import { DocumentsScreen } from './src/screens/DocumentsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { PinLockScreen } from './src/components/security/PinLockScreen';
 import { Logo } from './src/components/ui/Logo';
@@ -32,7 +33,7 @@ import { Transaction, Task, Habit } from './src/types';
 import { cn } from './src/utils/cn';
 import { audioService } from './src/services/audioService';
 
-type TabType = 'HOME' | 'MONEY' | 'PRODUCTIVITY' | 'SETTINGS';
+type TabType = 'HOME' | 'MONEY' | 'PRODUCTIVITY' | 'DOCUMENTS' | 'SETTINGS';
 
 function MainApp() {
   useDatabase();
@@ -97,6 +98,7 @@ function MainApp() {
     { key: 'HOME', label: 'Today', icon: Home },
     { key: 'MONEY', label: 'Finance', icon: Wallet },
     { key: 'PRODUCTIVITY', label: 'Productivity', icon: CheckSquare },
+    { key: 'DOCUMENTS', label: 'Documents', icon: FolderOpen },
     { key: 'SETTINGS', label: 'Settings', icon: Settings },
   ];
 
@@ -212,6 +214,8 @@ function MainApp() {
             initialFocusTask={focusTask}
           />
         )}
+
+        {activeTab === 'DOCUMENTS' && <DocumentsScreen />}
 
         {activeTab === 'SETTINGS' && (
           <SettingsScreen
