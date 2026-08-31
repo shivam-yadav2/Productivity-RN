@@ -76,6 +76,9 @@ export interface RecurringTransaction {
   startDate: string;
   nextDueDate: string;
   isActive: boolean;
+  reminderEnabled?: boolean;
+  reminderDaysBefore?: number;
+  reminderNotificationId?: string;
   createdAt: string;
   updatedAt: string;
 }

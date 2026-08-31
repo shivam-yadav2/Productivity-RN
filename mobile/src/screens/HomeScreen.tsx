@@ -10,9 +10,11 @@ import {
   CheckCircle2,
   ChevronRight,
   Sparkles,
+  Bell,
 } from 'lucide-react-native';
 import { useDatabase } from '../context/DatabaseContext';
 import { getTodayDateString, getGreetingTime, formatDateDisplay } from '../utils/date';
+import { formatCurrency } from '../utils/currency';
 import { budgetService } from '../services/budgetService';
 import { analyticsService } from '../services/analyticsService';
 import { Card } from '../components/ui/Card';
@@ -21,6 +23,7 @@ import { TaskItem } from '../components/productivity/TaskItem';
 import { TaskQuickAdd } from '../components/productivity/TaskQuickAdd';
 import { HabitCard } from '../components/productivity/HabitCard';
 import { habitRepository } from '../database/repositories/habitRepo';
+import { recurringRepository } from '../database/repositories/recurringRepo';
 import { TransactionItem } from '../components/finance/TransactionItem';
 import { Task, Transaction, Habit } from '../types';
 
@@ -79,6 +82,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       return (b.time || '').localeCompare(a.time || '');
     })
     .slice(0, 3);
+
+  const upcomingBills = recurringRepository
+    .getAll()
+    .filter((r) => r.reminderEnabled && r.isActive)
+    .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
+    .slice(0, 5);
 
   const handleActionPress = (key: (typeof actionTiles)[number]['key']) => {
     if (key === 'expense') onOpenAddExpense();
@@ -258,6 +267,53 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         )}
       </View>
+
+      {/* Upcoming Bills — supplementary section, hidden entirely when there's nothing to show */}
+      {upcomingBills.length > 0 && (
+        <View className="flex flex-col gap-2.5">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-1.5">
+              <Bell size={16} color="#71717a" />
+              <Text className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                Upcoming Bills
+              </Text>
+              <Text className="text-xs text-zinc-400 font-medium">({upcomingBills.length})</Text>
+            </View>
+            <Pressable onPress={onNavigateToMoney} className="flex-row items-center">
+              <Text className="text-xs font-medium text-zinc-500 dark:text-zinc-400">All Rules</Text>
+              <ChevronRight size={12} color="#71717a" />
+            </Pressable>
+          </View>
+
+          <View className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/70 dark:border-zinc-800/70 overflow-hidden">
+            {upcomingBills.map((r, i) => {
+              const cat = r.categoryId ? db.categories[r.categoryId] : undefined;
+              return (
+                <View
+                  key={r.id}
+                  className={
+                    i < upcomingBills.length - 1
+                      ? 'flex-row items-center justify-between p-3 border-b border-zinc-100 dark:border-zinc-800/60'
+                      : 'flex-row items-center justify-between p-3'
+                  }
+                >
+                  <View className="flex-col min-w-0 flex-1 pr-2">
+                    <Text numberOfLines={1} className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      {r.note || cat?.name || 'Recurring Payment'}
+                    </Text>
+                    <Text className="text-[11px] text-zinc-500">
+                      Due {formatDateDisplay(r.nextDueDate)}
+                    </Text>
+                  </View>
+                  <Text className="text-xs font-bold text-zinc-900 dark:text-zinc-100 shrink-0">
+                    {formatCurrency(r.amountMinor, currency)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 };

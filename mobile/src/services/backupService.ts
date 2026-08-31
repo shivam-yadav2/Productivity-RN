@@ -39,6 +39,9 @@ export const backupService = {
         habits: Object.values(db.habits),
         habitLogs: Object.values(db.habitLogs),
         focusSessions: Object.values(db.focusSessions),
+        savingsGoals: Object.values(db.savingsGoals),
+        debts: Object.values(db.debts),
+        notes: Object.values(db.notes),
         settings: db.settings,
       },
     };

@@ -44,4 +44,25 @@ export const notificationService = {
       // Ignore fallback
     }
   },
+
+  async scheduleAt(identifier: string, title: string, body: string, date: Date): Promise<string | null> {
+    try {
+      if (!(await this.hasPermission())) return null;
+      return await Notifications.scheduleNotificationAsync({
+        identifier,
+        content: { title, body },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+      });
+    } catch {
+      return null;
+    }
+  },
+
+  async cancel(identifier: string): Promise<void> {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(identifier);
+    } catch {
+      // Ignore fallback
+    }
+  },
 };

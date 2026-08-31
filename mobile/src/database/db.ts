@@ -23,6 +23,9 @@ import {
   AppSettings,
   BackupData,
   AppDocument,
+  SavingsGoal,
+  Debt,
+  Note,
 } from '../types';
 import {
   DEFAULT_ACCOUNTS,
@@ -46,6 +49,9 @@ export interface DatabaseTables {
   habitLogs: Record<string, HabitLog>;
   focusSessions: Record<string, FocusSession>;
   documents: Record<string, AppDocument>;
+  savingsGoals: Record<string, SavingsGoal>;
+  debts: Record<string, Debt>;
+  notes: Record<string, Note>;
   settings: AppSettings;
 }
 
@@ -84,6 +90,9 @@ class DatabaseEngine {
       habitLogs: {},
       focusSessions: {},
       documents: {},
+      savingsGoals: {},
+      debts: {},
+      notes: {},
       settings: { ...DEFAULT_SETTINGS },
     };
   }
@@ -477,6 +486,9 @@ class DatabaseEngine {
       db.habits = {};
       db.habitLogs = {};
       db.focusSessions = {};
+      db.savingsGoals = {};
+      db.debts = {};
+      db.notes = {};
 
       (backup.data.accounts || []).forEach((a) => (db.accounts[a.id] = a));
       (backup.data.categories || []).forEach((c) => (db.categories[c.id] = c));
@@ -487,6 +499,9 @@ class DatabaseEngine {
       (backup.data.habits || []).forEach((h) => (db.habits[h.id] = h));
       (backup.data.habitLogs || []).forEach((hl) => (db.habitLogs[hl.id] = hl));
       (backup.data.focusSessions || []).forEach((f) => (db.focusSessions[f.id] = f));
+      (backup.data.savingsGoals || []).forEach((g) => (db.savingsGoals[g.id] = g));
+      (backup.data.debts || []).forEach((d) => (db.debts[d.id] = d));
+      (backup.data.notes || []).forEach((n) => (db.notes[n.id] = n));
       if (backup.data.settings) {
         db.settings = { ...DEFAULT_SETTINGS, ...backup.data.settings };
       }

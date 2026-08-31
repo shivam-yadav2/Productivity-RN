@@ -40,6 +40,9 @@ export interface BackupData {
     habits: any[];
     habitLogs: any[];
     focusSessions: any[];
+    savingsGoals: any[];
+    debts: any[];
+    notes: any[];
     settings: AppSettings;
   };
 }

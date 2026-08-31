@@ -4,7 +4,7 @@ import { View, Text, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Home, Wallet, CheckSquare, FolderOpen, Settings, Lock, Moon, Sun } from 'lucide-react-native';
+import { Home, Wallet, CheckSquare, FolderOpen, Settings, Lock, Moon, Sun, Search } from 'lucide-react-native';
 import { DatabaseProvider, useDatabase } from './src/context/DatabaseContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SecurityProvider, useSecurity } from './src/context/SecurityContext';
@@ -26,12 +26,19 @@ import { AccountsManagerModal } from './src/components/finance/AccountsManagerMo
 import { CategoryManagerModal } from './src/components/finance/CategoryManagerModal';
 import { BudgetManagerModal } from './src/components/finance/BudgetManagerModal';
 import { RecurringManagerModal } from './src/components/finance/RecurringManagerModal';
+import { GoalsManagerModal } from './src/components/finance/GoalsManagerModal';
+import { DebtsManagerModal } from './src/components/finance/DebtsManagerModal';
 import { TaskDetailModal } from './src/components/productivity/TaskDetailModal';
 import { HabitFormModal } from './src/components/productivity/HabitFormModal';
+import { NoteEditorModal } from './src/components/productivity/NoteEditorModal';
+import { GlobalSearchOverlay } from './src/components/search/GlobalSearchOverlay';
+import { noteRepository } from './src/database/repositories/noteRepo';
 
-import { Transaction, Task, Habit } from './src/types'; 
+import { Transaction, Task, Habit, Note } from './src/types';
 import { cn } from './src/utils/cn';
 import { audioService } from './src/services/audioService';
+import { shareDocument } from './src/services/documentStorage';
+import { SearchResult } from './src/services/searchService';
 
 type TabType = 'HOME' | 'MONEY' | 'PRODUCTIVITY' | 'DOCUMENTS' | 'SETTINGS';
 
@@ -49,13 +56,18 @@ function MainApp() {
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+  const [isDebtsModalOpen, setIsDebtsModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [focusTask, setFocusTask] = useState<Task | null>(null);
 
   if (isLocked) {
@@ -94,6 +106,29 @@ function MainApp() {
     setActiveTab('PRODUCTIVITY');
   };
 
+  const handleSelectSearchResult = (result: SearchResult) => {
+    setIsSearchOpen(false);
+    if (result.type === 'transaction') {
+      setSelectedTransaction(result.item);
+      setActiveTab('MONEY');
+    } else if (result.type === 'task') {
+      setSelectedTask(result.item);
+      setIsTaskModalOpen(true);
+      setActiveTab('PRODUCTIVITY');
+    } else if (result.type === 'habit') {
+      setSelectedHabit(result.item);
+      setIsHabitModalOpen(true);
+      setActiveTab('PRODUCTIVITY');
+    } else if (result.type === 'document') {
+      setActiveTab('DOCUMENTS');
+      shareDocument(result.item);
+    } else if (result.type === 'note') {
+      setSelectedNote(result.item);
+      setIsNoteModalOpen(true);
+      setActiveTab('PRODUCTIVITY');
+    }
+  };
+
   const tabs: { key: TabType; label: string; icon: typeof Home }[] = [
     { key: 'HOME', label: 'Today', icon: Home },
     { key: 'MONEY', label: 'Finance', icon: Wallet },
@@ -126,6 +161,13 @@ function MainApp() {
           </View>
 
           <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => setIsSearchOpen(true)}
+              className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg"
+            >
+              <Search size={16} color="#71717a" />
+            </Pressable>
+
             {hasPin && (
               <Pressable onPress={lockApp} className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg">
                 <Lock size={16} color="#71717a" />
@@ -189,6 +231,8 @@ function MainApp() {
             onOpenCategoriesManager={() => setIsCategoriesModalOpen(true)}
             onOpenBudgetManager={() => setIsBudgetModalOpen(true)}
             onOpenRecurringManager={() => setIsRecurringModalOpen(true)}
+            onOpenGoalsManager={() => setIsGoalsModalOpen(true)}
+            onOpenDebtsManager={() => setIsDebtsModalOpen(true)}
             onSelectTransaction={(tx) => setSelectedTransaction(tx)}
           />
         )}
@@ -212,6 +256,14 @@ function MainApp() {
               setIsHabitModalOpen(true);
             }}
             initialFocusTask={focusTask}
+            onOpenNewNote={() => {
+              setSelectedNote(null);
+              setIsNoteModalOpen(true);
+            }}
+            onSelectNote={(note) => {
+              setSelectedNote(note);
+              setIsNoteModalOpen(true);
+            }}
           />
         )}
 
@@ -286,6 +338,10 @@ function MainApp() {
 
       <RecurringManagerModal isOpen={isRecurringModalOpen} onClose={() => setIsRecurringModalOpen(false)} />
 
+      <GoalsManagerModal isOpen={isGoalsModalOpen} onClose={() => setIsGoalsModalOpen(false)} />
+
+      <DebtsManagerModal isOpen={isDebtsModalOpen} onClose={() => setIsDebtsModalOpen(false)} />
+
       <TaskDetailModal
         task={selectedTask}
         isOpen={isTaskModalOpen}
@@ -303,6 +359,39 @@ function MainApp() {
           setIsHabitModalOpen(false);
           setSelectedHabit(null);
         }}
+      />
+
+      <NoteEditorModal
+        note={selectedNote}
+        isOpen={isNoteModalOpen}
+        onClose={() => {
+          setIsNoteModalOpen(false);
+          setSelectedNote(null);
+        }}
+        onSave={({ title, body }) => {
+          if (selectedNote) {
+            noteRepository.update(selectedNote.id, { title, body });
+          } else {
+            noteRepository.create({ title, body });
+          }
+          setIsNoteModalOpen(false);
+          setSelectedNote(null);
+        }}
+        onDelete={
+          selectedNote
+            ? () => {
+                noteRepository.delete(selectedNote.id);
+                setIsNoteModalOpen(false);
+                setSelectedNote(null);
+              }
+            : undefined
+        }
+      />
+
+      <GlobalSearchOverlay
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectResult={handleSelectSearchResult}
       />
     </View>
   );

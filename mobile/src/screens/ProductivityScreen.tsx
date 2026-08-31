@@ -1,13 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { CheckSquare, Sparkles, Timer, Plus, CheckCircle2 } from 'lucide-react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import { CheckSquare, Sparkles, Timer, Plus, CheckCircle2, StickyNote, Search, X, NotebookPen } from 'lucide-react-native';
 import { useDatabase } from '../context/DatabaseContext';
-import { Task, Habit } from '../types';
+import { Task, Habit, Note } from '../types';
 import { TaskItem } from '../components/productivity/TaskItem';
 import { TaskQuickAdd } from '../components/productivity/TaskQuickAdd';
 import { HabitCard } from '../components/productivity/HabitCard';
+import { NoteItem } from '../components/productivity/NoteItem';
 import { FocusTimer } from '../components/productivity/FocusTimer';
 import { FocusAnalytics } from '../components/productivity/FocusAnalytics';
+import { noteRepository } from '../database/repositories/noteRepo';
+import { audioService } from '../services/audioService';
 import { Button, buttonTextColor } from '../components/ui/Button';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { FadeSwap } from '../components/ui/FadeSwap';
@@ -18,7 +21,10 @@ interface ProductivityScreenProps {
   onOpenNewTask: () => void;
   onOpenNewHabit: () => void;
   onEditHabit: (habit: Habit) => void;
+  onOpenNewNote: () => void;
+  onSelectNote: (note: Note) => void;
   initialFocusTask?: Task | null;
+  initialSubTab?: 'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES';
 }
 
 const taskFilters = [
@@ -33,15 +39,46 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
   onOpenNewTask,
   onOpenNewHabit,
   onEditHabit,
+  onOpenNewNote,
+  onSelectNote,
   initialFocusTask,
+  initialSubTab,
 }) => {
   const { db } = useDatabase();
-  const [activeTab, setActiveTab] = useState<'TASKS' | 'HABITS' | 'FOCUS'>('TASKS');
+  const [activeTab, setActiveTab] = useState<'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES'>(initialSubTab || 'TASKS');
   const [taskFilter, setTaskFilter] = useState<'ALL' | 'TODAY' | 'HIGH' | 'COMPLETED'>('ALL');
   const [focusTask, setFocusTask] = useState<Task | null>(initialFocusTask || null);
+  const [noteSearchQuery, setNoteSearchQuery] = useState('');
 
   const tasks = Object.values(db.tasks);
   const habits = Object.values(db.habits);
+
+  const notes = useMemo(() => {
+    return noteRepository.getAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db.notes]);
+
+  const filteredNotes = useMemo(() => {
+    const q = noteSearchQuery.trim().toLowerCase();
+    if (!q) return notes;
+    return notes.filter(
+      (n) => n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q)
+    );
+  }, [notes, noteSearchQuery]);
+
+  const handleDeleteNote = (note: Note) => {
+    Alert.alert('Delete note?', 'This note will be permanently removed.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          noteRepository.delete(note.id);
+          audioService.triggerHaptic('light');
+        },
+      },
+    ]);
+  };
 
   const filteredTasks = useMemo(() => {
     return tasks
@@ -74,6 +111,7 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
     { key: 'TASKS' as const, label: `Tasks (${tasks.filter((t) => t.status !== 'COMPLETED').length})`, icon: CheckSquare },
     { key: 'HABITS' as const, label: `Habits (${habits.length})`, icon: Sparkles },
     { key: 'FOCUS' as const, label: 'Focus', icon: Timer },
+    { key: 'NOTES' as const, label: `Notes (${notes.length})`, icon: StickyNote },
   ];
 
   return (
@@ -96,6 +134,13 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
           <Button size="sm" onPress={onOpenNewHabit}>
             <Plus size={16} color="#ffffff" />
             <Text className={cn('text-xs font-medium ml-1', buttonTextColor.primary)}>New Habit</Text>
+          </Button>
+        )}
+
+        {activeTab === 'NOTES' && (
+          <Button size="sm" onPress={onOpenNewNote}>
+            <Plus size={16} color="#ffffff" />
+            <Text className={cn('text-xs font-medium ml-1', buttonTextColor.primary)}>New Note</Text>
           </Button>
         )}
       </View>
@@ -177,6 +222,56 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
         <View className="flex flex-col gap-4">
           <FocusTimer initialTask={focusTask} />
           <FocusAnalytics />
+        </View>
+      )}
+
+      {activeTab === 'NOTES' && (
+        <View className="flex flex-col gap-3">
+          <View className="relative justify-center">
+            <View className="absolute left-3 z-10">
+              <Search size={16} color="#71716E" />
+            </View>
+            <TextInput
+              value={noteSearchQuery}
+              onChangeText={setNoteSearchQuery}
+              placeholder="Search notes..."
+              placeholderTextColor="#71716E"
+              className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-zinc-100"
+            />
+            {noteSearchQuery ? (
+              <Pressable onPress={() => setNoteSearchQuery('')} className="absolute right-2.5">
+                <X size={14} color="#71716E" />
+              </Pressable>
+            ) : null}
+          </View>
+
+          <View className="flex flex-col gap-2">
+            {filteredNotes.length === 0 ? (
+              <View className="py-12 items-center justify-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
+                <NotebookPen size={32} color="#a1a1aa" />
+                <Text className="text-xs text-zinc-500 mt-2">
+                  {noteSearchQuery ? 'No notes match your search.' : 'No notes yet.'}
+                </Text>
+                {!noteSearchQuery && (
+                  <Button size="sm" className="mt-3" onPress={onOpenNewNote}>
+                    <Plus size={16} color="#ffffff" />
+                    <Text className={cn('text-xs font-medium ml-1', buttonTextColor.primary)}>Write Your First Note</Text>
+                  </Button>
+                )}
+              </View>
+            ) : (
+              filteredNotes.map((n, i) => (
+                <NoteItem
+                  key={n.id}
+                  note={n}
+                  index={i}
+                  onPress={() => onSelectNote(n)}
+                  onTogglePin={() => noteRepository.togglePin(n.id)}
+                  onDelete={() => handleDeleteNote(n)}
+                />
+              ))
+            )}
+          </View>
         </View>
       )}
       </FadeSwap>

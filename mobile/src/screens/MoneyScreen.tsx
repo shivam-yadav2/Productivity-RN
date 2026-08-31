@@ -18,6 +18,8 @@ import { Button, buttonTextColor } from '../components/ui/Button';
 import { TransactionList } from '../components/finance/TransactionList';
 import { FinanceAnalyticsView } from '../components/finance/FinanceAnalyticsView';
 import { BudgetCard } from '../components/finance/BudgetCard';
+import { SavingsGoalsCard } from '../components/finance/SavingsGoalsCard';
+import { DebtsCard } from '../components/finance/DebtsCard';
 import { IconHelper } from '../components/ui/IconHelper';
 import { AnimatedCurrency } from '../components/ui/AnimatedCurrency';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
@@ -33,6 +35,8 @@ interface MoneyScreenProps {
   onOpenCategoriesManager: () => void;
   onOpenBudgetManager: () => void;
   onOpenRecurringManager: () => void;
+  onOpenGoalsManager: () => void;
+  onOpenDebtsManager: () => void;
   onSelectTransaction: (tx: Transaction) => void;
 }
 
@@ -44,6 +48,8 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
   onOpenCategoriesManager,
   onOpenBudgetManager,
   onOpenRecurringManager,
+  onOpenGoalsManager,
+  onOpenDebtsManager,
   onSelectTransaction,
 }) => {
   const { db } = useDatabase();
@@ -152,6 +158,10 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
         {activeTab === 'BUDGETS' && (
           <View className="flex flex-col gap-4">
             <BudgetCard onOpenBudgetManager={onOpenBudgetManager} />
+
+            <SavingsGoalsCard onOpenGoalsManager={onOpenGoalsManager} />
+
+            <DebtsCard onOpenDebtsManager={onOpenDebtsManager} />
 
             <Card>
               <View className="flex-row items-center justify-between">
