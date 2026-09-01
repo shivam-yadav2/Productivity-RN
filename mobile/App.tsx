@@ -1,5 +1,5 @@
 import './global.css';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -15,7 +15,6 @@ import { DocumentsScreen } from './src/screens/DocumentsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { PinLockScreen } from './src/components/security/PinLockScreen';
 import { Logo } from './src/components/ui/Logo';
-import { FadeSwap } from './src/components/ui/FadeSwap';
 import { TabBarButton } from './src/components/ui/TabBarButton';
 
 import { ExpenseFormModal } from './src/components/finance/ExpenseFormModal';
@@ -48,6 +47,15 @@ function MainApp() {
   const { isLocked, hasPin, lockApp } = useSecurity();
 
   const [activeTab, setActiveTab] = useState<TabType>('HOME');
+  // Screens mount once on first visit and then stay mounted (just hidden), instead of being
+  // torn down and rebuilt every tab switch — that remount was replaying every list row's
+  // entrance animation and recomputing every aggregate from scratch on every navigation,
+  // which is what made switching tabs feel slow.
+  const [mountedTabs, setMountedTabs] = useState<Set<TabType>>(() => new Set(['HOME']));
+
+  useEffect(() => {
+    setMountedTabs((prev) => (prev.has(activeTab) ? prev : new Set(prev).add(activeTab)));
+  }, [activeTab]);
 
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
@@ -183,8 +191,8 @@ function MainApp() {
 
       {/* Main View Area */}
       <View className="flex-1 px-4 pt-3">
-       <FadeSwap swapKey={activeTab} fill>
-        {activeTab === 'HOME' && (
+        {mountedTabs.has('HOME') && (
+        <View style={{ flex: 1, display: activeTab === 'HOME' ? 'flex' : 'none' }}>
           <HomeScreen
             onNavigateToMoney={() => handleTabChange('MONEY')}
             onNavigateToProductivity={() => handleTabChange('PRODUCTIVITY')}
@@ -211,9 +219,11 @@ function MainApp() {
               setIsHabitModalOpen(true);
             }}
           />
+        </View>
         )}
 
-        {activeTab === 'MONEY' && (
+        {mountedTabs.has('MONEY') && (
+        <View style={{ flex: 1, display: activeTab === 'MONEY' ? 'flex' : 'none' }}>
           <MoneyScreen
             onOpenAddExpense={() => {
               setEditingTransaction(null);
@@ -235,9 +245,11 @@ function MainApp() {
             onOpenDebtsManager={() => setIsDebtsModalOpen(true)}
             onSelectTransaction={(tx) => setSelectedTransaction(tx)}
           />
+        </View>
         )}
 
-        {activeTab === 'PRODUCTIVITY' && (
+        {mountedTabs.has('PRODUCTIVITY') && (
+        <View style={{ flex: 1, display: activeTab === 'PRODUCTIVITY' ? 'flex' : 'none' }}>
           <ProductivityScreen
             onSelectTask={(task) => {
               setSelectedTask(task);
@@ -265,17 +277,23 @@ function MainApp() {
               setIsNoteModalOpen(true);
             }}
           />
+        </View>
         )}
 
-        {activeTab === 'DOCUMENTS' && <DocumentsScreen />}
+        {mountedTabs.has('DOCUMENTS') && (
+        <View style={{ flex: 1, display: activeTab === 'DOCUMENTS' ? 'flex' : 'none' }}>
+          <DocumentsScreen />
+        </View>
+        )}
 
-        {activeTab === 'SETTINGS' && (
+        {mountedTabs.has('SETTINGS') && (
+        <View style={{ flex: 1, display: activeTab === 'SETTINGS' ? 'flex' : 'none' }}>
           <SettingsScreen
             onOpenAccountsManager={() => setIsAccountsModalOpen(true)}
             onOpenCategoriesManager={() => setIsCategoriesModalOpen(true)}
           />
+        </View>
         )}
-       </FadeSwap>
       </View>
 
       {/* Bottom Tab Bar */}

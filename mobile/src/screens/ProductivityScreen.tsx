@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { CheckSquare, Sparkles, Timer, Plus, CheckCircle2, StickyNote, Search, X, NotebookPen } from 'lucide-react-native';
 import { useDatabase } from '../context/DatabaseContext';
@@ -49,6 +49,18 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
   const [taskFilter, setTaskFilter] = useState<'ALL' | 'TODAY' | 'HIGH' | 'COMPLETED'>('ALL');
   const [focusTask, setFocusTask] = useState<Task | null>(initialFocusTask || null);
   const [noteSearchQuery, setNoteSearchQuery] = useState('');
+
+  // This screen now stays mounted after its first visit (see App.tsx), so `initialFocusTask`
+  // only seeding `focusTask` via useState's initializer isn't enough — that only runs once,
+  // ever. Re-apply it whenever the prop actually changes (a new "Start Focus" tap from Home),
+  // and jump to the Focus segment the same way starting a session from within this screen does.
+  useEffect(() => {
+    if (initialFocusTask) {
+      setFocusTask(initialFocusTask);
+      setActiveTab('FOCUS');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFocusTask]);
 
   const tasks = Object.values(db.tasks);
   const habits = Object.values(db.habits);

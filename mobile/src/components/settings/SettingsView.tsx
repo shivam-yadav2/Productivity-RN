@@ -10,6 +10,7 @@ import { Card } from '../ui/Card';
 import { Button, buttonTextColor } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
+import { Spinner } from '../ui/Spinner';
 import {
   Moon,
   Sun,
@@ -330,7 +331,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onPress={handleImportMoneyManager}
             disabled={isImportingMM}
           >
-            <FileUp size={14} color="#3f3f46" />
+            {isImportingMM ? <Spinner size={14} color="#3f3f46" /> : <FileUp size={14} color="#3f3f46" />}
             <Text className={cn('text-xs font-semibold ml-1', buttonTextColor.secondary)}>
               {isImportingMM ? 'Importing…' : 'Import'}
             </Text>

@@ -7,6 +7,7 @@ import { AppDocument } from '../types';
 import { DocumentRow } from '../components/documents/DocumentRow';
 import { RenameDocumentModal } from '../components/documents/RenameDocumentModal';
 import { Button, buttonTextColor } from '../components/ui/Button';
+import { Spinner } from '../components/ui/Spinner';
 import { documentRepository } from '../database/repositories/documentRepo';
 import { pickAndSaveDocument, shareDocument, deleteDocument } from '../services/documentStorage';
 import { audioService } from '../services/audioService';
@@ -133,7 +134,7 @@ export const DocumentsScreen: React.FC = () => {
           style={{ elevation: 6, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8 }}
         >
           <Button variant="primary" onPress={handleAddDocument} disabled={isSaving} className="rounded-xl">
-            <Plus size={16} color="#ffffff" />
+            {isSaving ? <Spinner size={16} color="#ffffff" trackColor="rgba(255,255,255,0.3)" /> : <Plus size={16} color="#ffffff" />}
             <Text className={cn('text-sm font-bold ml-1', buttonTextColor.primary)}>
               {isSaving ? 'Adding…' : 'Add Document'}
             </Text>
