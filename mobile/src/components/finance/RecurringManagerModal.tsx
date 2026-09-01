@@ -16,6 +16,7 @@ import { Plus, Repeat, Play, Trash2, Bell, Pencil } from 'lucide-react-native';
 import { audioService } from '../../services/audioService';
 import { notificationService } from '../../services/notificationService';
 import { cn } from '../../utils/cn';
+import { ink } from '../../utils/theme';
 
 const REMINDER_DAYS_OPTIONS: { label: string; value: string }[] = [
   { label: '1 day before', value: '1' },
@@ -257,14 +258,14 @@ export const RecurringManagerModal: React.FC<RecurringManagerModalProps> = ({ is
                 className={cn(
                   'flex-1 py-2 rounded-xl items-center border',
                   type === t
-                    ? 'bg-zinc-900 border-zinc-900 dark:bg-zinc-100 dark:border-zinc-100'
-                    : 'bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700'
+                    ? 'bg-ink-900 border-ink-900 dark:bg-ink-100 dark:border-ink-100'
+                    : 'bg-ink-50 dark:bg-ink-800 border-ink-200 dark:border-ink-700'
                 )}
               >
                 <Text
                   className={cn(
                     'text-xs font-semibold',
-                    type === t ? 'text-white dark:text-zinc-900' : 'text-zinc-600 dark:text-zinc-400'
+                    type === t ? 'text-white dark:text-ink-900' : 'text-ink-600 dark:text-ink-400'
                   )}
                 >
                   Recurring {t}
@@ -307,11 +308,11 @@ export const RecurringManagerModal: React.FC<RecurringManagerModalProps> = ({ is
 
           <DateField mode="date" label="First / Next Due Date" value={nextDueDate} onChange={setNextDueDate} />
 
-          <View className="flex-col gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800">
+          <View className="flex-col gap-3 p-3 rounded-3xl bg-ink-50 dark:bg-ink-800/40 border border-ink-200/70 dark:border-ink-800">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-2">
-                <Bell size={16} color="#71717a" />
-                <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                <Bell size={16} color={ink[500]} />
+                <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">
                   Remind me before it's due
                 </Text>
               </View>
@@ -330,7 +331,7 @@ export const RecurringManagerModal: React.FC<RecurringManagerModalProps> = ({ is
 
           {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
-          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
             <Button
               variant="ghost"
               onPress={() => {
@@ -348,7 +349,7 @@ export const RecurringManagerModal: React.FC<RecurringManagerModalProps> = ({ is
       ) : (
         <View className="flex-col gap-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs text-zinc-500 font-medium">{recurringList.length} Scheduled Rules</Text>
+            <Text className="text-xs text-ink-500 font-medium">{recurringList.length} Scheduled Rules</Text>
             <Button size="sm" onPress={handleStartCreate}>
               <Plus size={16} color="#ffffff" />
               <Text className={buttonTextColor.primary}>Add Rule</Text>
@@ -356,9 +357,9 @@ export const RecurringManagerModal: React.FC<RecurringManagerModalProps> = ({ is
           </View>
 
           {recurringList.length === 0 ? (
-            <View className="py-8 items-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
-              <Repeat size={32} color="#a1a1aa" />
-              <Text className="text-xs text-zinc-500 mt-2 text-center px-4">
+            <View className="py-8 items-center bg-ink-50 dark:bg-ink-800/30 rounded-3xl border border-ink-200/60 dark:border-ink-800">
+              <Repeat size={32} color={ink[400]} />
+              <Text className="text-xs text-ink-500 mt-2 text-center px-4">
                 No recurring rules yet. Track Netflix, Rent, EMI, and Subscriptions.
               </Text>
             </View>
@@ -371,38 +372,38 @@ export const RecurringManagerModal: React.FC<RecurringManagerModalProps> = ({ is
                   return (
                     <View
                       key={r.id}
-                      className="flex-row items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800"
+                      className="flex-row items-center justify-between p-3 rounded-3xl bg-ink-50 dark:bg-ink-800/40 border border-ink-200/70 dark:border-ink-800"
                     >
                       <View className="flex-row items-center gap-3 flex-1 min-w-0 pr-2">
                         <View className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 items-center justify-center shrink-0 border border-blue-200 dark:border-blue-800">
                           <IconHelper name={cat?.icon || 'Repeat'} size={18} color="#2563eb" />
                         </View>
                         <View className="flex-col min-w-0">
-                          <Text numberOfLines={1} className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                          <Text numberOfLines={1} className="text-xs font-semibold text-ink-900 dark:text-ink-100">
                             {r.note || cat?.name || 'Recurring Payment'}
                           </Text>
                           <View className="flex-row items-center gap-1.5">
-                            <Text className="text-[11px] text-zinc-500">{r.frequency}</Text>
-                            <Text className="text-[11px] text-zinc-500">• {acc?.name || 'Account'}</Text>
-                            <Text className="text-[11px] text-zinc-500">• Due: {r.nextDueDate}</Text>
-                            {r.reminderEnabled && <Bell size={11} color="#71717a" />}
+                            <Text className="text-[11px] text-ink-500">{r.frequency}</Text>
+                            <Text className="text-[11px] text-ink-500">• {acc?.name || 'Account'}</Text>
+                            <Text className="text-[11px] text-ink-500">• Due: {r.nextDueDate}</Text>
+                            {r.reminderEnabled && <Bell size={11} color={ink[500]} />}
                           </View>
                         </View>
                       </View>
 
                       <View className="flex-row items-center gap-2 shrink-0">
-                        <Text className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        <Text className="text-xs font-bold text-ink-900 dark:text-ink-100">
                           {formatCurrency(r.amountMinor, db.settings.currency)}
                         </Text>
                         <Button size="sm" variant="secondary" onPress={() => handleExecuteNow(r)}>
                           <Play size={12} color="#059669" />
                           <Text className={cn(buttonTextColor.secondary, 'text-[11px]')}>Log</Text>
                         </Button>
-                        <Pressable onPress={() => handleStartEdit(r)} className="p-1.5 rounded-lg active:bg-zinc-200/60 dark:active:bg-zinc-700">
-                          <Pencil size={16} color="#a1a1aa" />
+                        <Pressable onPress={() => handleStartEdit(r)} className="p-1.5 rounded-lg active:bg-ink-200/60 dark:active:bg-ink-700">
+                          <Pencil size={16} color={ink[400]} />
                         </Pressable>
-                        <Pressable onPress={() => handleDelete(r.id)} className="p-1.5 rounded-lg active:bg-zinc-200/60 dark:active:bg-zinc-700">
-                          <Trash2 size={16} color="#a1a1aa" />
+                        <Pressable onPress={() => handleDelete(r.id)} className="p-1.5 rounded-lg active:bg-ink-200/60 dark:active:bg-ink-700">
+                          <Trash2 size={16} color={ink[400]} />
                         </Pressable>
                       </View>
                     </View>

@@ -17,8 +17,8 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variants = {
     default: {
-      wrap: 'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700',
-      text: 'text-zinc-700 dark:text-zinc-300',
+      wrap: 'bg-ink-100 dark:bg-ink-800 border border-ink-200 dark:border-ink-700',
+      text: 'text-ink-700 dark:text-ink-300',
     },
     success: {
       wrap: 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800',
@@ -37,8 +37,8 @@ export const Badge: React.FC<BadgeProps> = ({
       text: 'text-blue-700 dark:text-blue-300',
     },
     outline: {
-      wrap: 'border border-zinc-300 dark:border-zinc-700',
-      text: 'text-zinc-600 dark:text-zinc-400',
+      wrap: 'border border-ink-300 dark:border-ink-700',
+      text: 'text-ink-600 dark:text-ink-400',
     },
   };
 

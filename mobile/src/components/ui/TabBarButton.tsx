@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { spring, timing, useReducedMotion } from '../../utils/motion';
-import { cn } from '../../utils/cn';
+import { inkText, surface } from '../../utils/theme';
 
 type IconType = React.ComponentType<{ size?: number; color?: string }>;
 
@@ -19,7 +19,14 @@ interface TabBarButtonProps {
   onPress: () => void;
 }
 
-/** A bottom-tab item whose icon springs up when it becomes active. */
+const SIZE = 46;
+
+/**
+ * A floating-pill nav item: the active tab gets a soft circle springing in behind its
+ * icon instead of a label swap — no text, matching the reference nav. The pill itself
+ * (see App.tsx) is always dark in either app theme, so the circle only ever needs to
+ * contrast against that one background, not both.
+ */
 export const TabBarButton: React.FC<TabBarButtonProps> = ({ label, icon: Icon, active, isDark, onPress }) => {
   const reduced = useReducedMotion();
   const progress = useSharedValue(active ? 1 : 0);
@@ -34,31 +41,36 @@ export const TabBarButton: React.FC<TabBarButtonProps> = ({ label, icon: Icon, a
         : withTiming(0, timing.base);
   }, [active, reduced, progress]);
 
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + progress.value * 0.16 }, { translateY: -progress.value * 2 }],
+  const circleStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: 0.6 + progress.value * 0.4 }],
   }));
 
-  const activeColor = isDark ? '#f4f4f5' : '#18181b';
-  const inactiveColor = '#a1a1aa';
+  const activeIconColor = inkText(isDark);
+  const idleIconColor = '#8E8B96';
 
   return (
     <Pressable
       onPress={onPress}
-      className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl"
+      style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}
       accessibilityRole="tab"
+      accessibilityLabel={label}
       accessibilityState={{ selected: active }}
     >
-      <Animated.View style={iconStyle}>
-        <Icon size={20} color={active ? activeColor : inactiveColor} />
-      </Animated.View>
-      <Text
-        className={cn(
-          'text-[10px]',
-          active ? 'text-zinc-900 dark:text-zinc-100 font-bold' : 'text-zinc-400'
-        )}
-      >
-        {label}
-      </Text>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            position: 'absolute',
+            width: SIZE,
+            height: SIZE,
+            borderRadius: SIZE / 2,
+            backgroundColor: isDark ? surface.dark : surface.light,
+          },
+          circleStyle,
+        ]}
+      />
+      <Icon size={19} color={active ? activeIconColor : idleIconColor} />
     </Pressable>
   );
 };

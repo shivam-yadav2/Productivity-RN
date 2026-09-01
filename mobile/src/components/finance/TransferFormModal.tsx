@@ -113,7 +113,7 @@ export const TransferFormModal: React.FC<TransferFormModalProps> = ({
       <View className="flex-col gap-4">
         {/* Amount Input */}
         <View className="flex-col gap-1">
-          <Text className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500">
             Transfer Amount ({db.settings.currency || 'INR'} ₹)
           </Text>
           <View className="relative justify-center">
@@ -127,14 +127,14 @@ export const TransferFormModal: React.FC<TransferFormModalProps> = ({
                 setError('');
               }}
               placeholder="0.00"
-              placeholderTextColor="#a1a1aa"
-              className="w-full pl-9 pr-4 py-3 text-2xl font-bold tracking-tight bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-blue-600 dark:text-blue-400"
+              placeholderTextColor="#A79D8C"
+              className="w-full pl-9 pr-4 py-3 text-2xl font-bold tracking-tight bg-ink-50 dark:bg-ink-800/80 border border-ink-200 dark:border-ink-700 rounded-2xl text-blue-600 dark:text-blue-400"
             />
           </View>
         </View>
 
         {/* Source & Destination Account Pickers */}
-        <View className="flex-col gap-3 p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200/60 dark:border-zinc-700/60">
+        <View className="flex-col gap-3 p-3.5 bg-ink-50 dark:bg-ink-800/40 rounded-2xl border border-ink-200/60 dark:border-ink-700/60">
           <Select
             label="From (Source Account)"
             value={sourceAccountId}
@@ -176,7 +176,7 @@ export const TransferFormModal: React.FC<TransferFormModalProps> = ({
         {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
         {/* Submit */}
-        <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
           <Button variant="ghost" onPress={onClose}>
             <Text className={buttonTextColor.ghost}>Cancel</Text>
           </Button>

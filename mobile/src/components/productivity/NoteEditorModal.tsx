@@ -54,7 +54,7 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
         />
 
         <View className="w-full flex flex-col gap-1.5">
-          <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Body</Text>
+          <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">Body</Text>
           <TextInput
             value={body}
             onChangeText={setBody}
@@ -63,12 +63,12 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             multiline
             numberOfLines={8}
             textAlignVertical="top"
-            className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700/80 text-zinc-900 dark:text-zinc-100"
+            className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white dark:bg-ink-900 border border-ink-300 dark:border-ink-700/80 text-ink-900 dark:text-ink-100"
             style={{ minHeight: 160 }}
           />
         </View>
 
-        <View className="flex-row items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-between gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
           {note && onDelete ? (
             <Button variant="ghost" onPress={handleDelete}>
               <Text className="text-rose-600 dark:text-rose-400 font-medium">Delete</Text>

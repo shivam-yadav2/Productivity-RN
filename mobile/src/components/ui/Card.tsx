@@ -16,11 +16,11 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const variants = {
-    default: 'bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4',
-    flat: 'bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl p-4',
-    outline: 'border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 bg-transparent',
+    default: 'bg-surface dark:bg-surface-dark border border-ink-100/80 dark:border-ink-800/80 rounded-3xl p-4',
+    flat: 'bg-ink-50 dark:bg-surface-dark/60 border border-ink-100/60 dark:border-ink-800/60 rounded-3xl p-4',
+    outline: 'border border-ink-100 dark:border-ink-800 rounded-3xl p-4 bg-transparent',
     interactive:
-      'bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4',
+      'bg-surface dark:bg-surface-dark border border-ink-100/80 dark:border-ink-800/80 rounded-3xl p-4',
   };
 
   if (variant === 'interactive' || onPress) {

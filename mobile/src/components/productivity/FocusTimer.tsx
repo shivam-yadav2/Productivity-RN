@@ -10,6 +10,7 @@ import { SegmentedControl } from '../ui/SegmentedControl';
 import { AnimatedBar } from '../ui/AnimatedBar';
 import { Play, Pause, RotateCcw } from 'lucide-react-native';
 import { cn } from '../../utils/cn';
+import { ink, inkText } from '../../utils/theme';
 
 interface FocusTimerProps {
   initialTask?: Task | null;
@@ -134,16 +135,16 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
     { key: 'LONG_BREAK', label: 'Long Break' },
   ];
 
-  const activeTint = isDark ? '#1A1A1A' : '#fff';
-  const mutedTint = '#71716E';
+  const activeTint = isDark ? ink[900] : '#fff';
+  const mutedTint = ink[500];
 
   return (
-    <View className="p-6 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg items-center">
+    <View className="p-6 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg items-center">
       <View className="w-full flex-row justify-between items-center mb-6">
-        <Text className="text-xs uppercase tracking-wider text-[#71716E] dark:text-[#999996] font-bold">
+        <Text className="text-xs uppercase tracking-wider text-ink-500 dark:text-ink-400 font-bold">
           Focus Timer
         </Text>
-        <Text className="text-[10px] uppercase font-semibold bg-[#1A1A1A] text-white dark:bg-[#F0F0EE] dark:text-[#1A1A1A] px-2 py-0.5 rounded">
+        <Text className="text-[10px] uppercase font-semibold bg-ink-900 text-white dark:bg-ink-100 dark:text-ink-900 px-2 py-0.5 rounded">
           {mode === 'FOCUS' ? 'FOCUS MODE' : mode === 'SHORT_BREAK' ? 'SHORT BREAK' : 'LONG BREAK'}
         </Text>
       </View>
@@ -158,10 +159,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
       </View>
 
       <View className="flex flex-col items-center w-full py-2">
-        <Text className="text-6xl font-light tracking-tighter text-[#1A1A1A] dark:text-[#F3F3F1] mb-2 font-mono">
+        <Text className="text-6xl font-light tracking-tighter text-ink-900 dark:text-ink-100 mb-2 font-mono">
           {formattedTime}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-[#71716E] mb-6 font-medium">
+        <Text numberOfLines={1} className="text-xs text-ink-500 mb-6 font-medium">
           {selectedTask ? selectedTask.title : 'Deep work & mindfulness session'}
         </Text>
 
@@ -169,14 +170,14 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
           <AnimatedBar
             percent={progressPercent}
             durationMs={isRunning ? 1000 : 300}
-            trackClassName="bg-[#F0F0EE] dark:bg-[#252523] h-1.5 rounded-full"
-            fillColor={isDark ? '#EDEDEB' : '#1A1A1A'}
+            trackClassName="bg-ink-100 dark:bg-ink-800 h-1.5 rounded-full"
+            fillColor={inkText(isDark)}
           />
         </View>
 
         {mode === 'FOCUS' && (
           <View className="w-full flex flex-col gap-1 mb-6">
-            <Text className="text-[10px] font-bold uppercase tracking-wider text-[#71716E]">
+            <Text className="text-[10px] font-bold uppercase tracking-wider text-ink-500">
               Linked Task:
             </Text>
             <Select
@@ -190,7 +191,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
         <View className="flex-row items-center gap-3">
           <Pressable
             onPress={handleReset}
-            className="px-4 py-2 border border-[#E5E5E2] dark:border-[#333330] rounded-md active:bg-[#F9F9F8] dark:active:bg-[#252523]"
+            className="px-4 py-2 border border-ink-200 dark:border-ink-700 rounded-md active:bg-ink-50 dark:active:bg-ink-800"
             accessibilityLabel="Reset timer"
           >
             <RotateCcw size={14} color={mutedTint} />
@@ -199,15 +200,15 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
           {isRunning ? (
             <Pressable
               onPress={handlePause}
-              className="px-6 py-2 border border-[#E5E5E2] dark:border-[#333330] bg-white dark:bg-[#252523] rounded-md flex-row items-center gap-1.5"
+              className="px-6 py-2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 rounded-md flex-row items-center gap-1.5"
             >
-              <Pause size={14} color={isDark ? '#EDEDEB' : '#1A1A1A'} />
-              <Text className="text-xs font-semibold text-[#1A1A1A] dark:text-[#EDEDEB]">Pause</Text>
+              <Pause size={14} color={inkText(isDark)} />
+              <Text className="text-xs font-semibold text-ink-900 dark:text-ink-100">Pause</Text>
             </Pressable>
           ) : (
             <Pressable
               onPress={handleStart}
-              className="px-6 py-2 bg-[#1A1A1A] dark:bg-[#EDEDEB] rounded-md flex-row items-center gap-1.5"
+              className="px-6 py-2 bg-ink-900 dark:bg-ink-100 rounded-md flex-row items-center gap-1.5"
             >
               <Play size={14} color={activeTint} fill={activeTint} />
               <Text className="text-xs font-semibold" style={{ color: activeTint }}>
@@ -217,7 +218,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
           )}
 
           {isRunning && (
-            <Pressable onPress={handleReset} className="px-6 py-2 bg-[#1A1A1A] dark:bg-[#EDEDEB] rounded-md">
+            <Pressable onPress={handleReset} className="px-6 py-2 bg-ink-900 dark:bg-ink-100 rounded-md">
               <Text className="text-xs font-semibold" style={{ color: activeTint }}>
                 Stop
               </Text>

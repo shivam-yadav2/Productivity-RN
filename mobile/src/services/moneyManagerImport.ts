@@ -132,12 +132,12 @@ const CATEGORY_ICON_HINTS: { match: RegExp; icon: string; color: string }[] = [
 
 function pickAccountMeta(name: string) {
   const hit = ACCOUNT_TYPE_HINTS.find((h) => h.match.test(name));
-  return hit ?? { type: 'OTHER' as AccountType, icon: 'Wallet', color: '#71717a' };
+  return hit ?? { type: 'OTHER' as AccountType, icon: 'Wallet', color: '#8A8680' };
 }
 
 function pickCategoryMeta(name: string) {
   const hit = CATEGORY_ICON_HINTS.find((h) => h.match.test(name));
-  return hit ?? { icon: 'Tag', color: '#71717a' };
+  return hit ?? { icon: 'Tag', color: '#8A8680' };
 }
 
 /** Reads the workbook into normalised rows, tolerating column reordering. */

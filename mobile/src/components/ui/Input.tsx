@@ -14,13 +14,13 @@ export const Input = React.forwardRef<TextInput, InputProps>(
     return (
       <View className="w-full flex flex-col gap-1.5">
         {label && (
-          <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{label}</Text>
+          <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">{label}</Text>
         )}
         <TextInput
           ref={ref}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor="#A79D8C"
           className={cn(
-            'w-full px-3.5 py-2.5 rounded-xl text-sm bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700/80 text-zinc-900 dark:text-zinc-100',
+            'w-full px-3.5 py-2.5 rounded-xl text-sm bg-surface dark:bg-surface-dark border border-ink-300 dark:border-ink-700/80 text-ink-900 dark:text-ink-100',
             error && 'border-rose-500',
             className
           )}
@@ -29,7 +29,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
         {error ? (
           <Text className="text-xs text-rose-500 font-medium">{error}</Text>
         ) : helperText ? (
-          <Text className="text-xs text-zinc-500 dark:text-zinc-400">{helperText}</Text>
+          <Text className="text-xs text-ink-500 dark:text-ink-400">{helperText}</Text>
         ) : null}
       </View>
     );

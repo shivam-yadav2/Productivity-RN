@@ -35,9 +35,9 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles = 'flex-row items-center justify-center font-medium rounded-xl';
 
   const variants = {
-    primary: 'bg-zinc-900 dark:bg-zinc-100',
-    secondary: 'bg-zinc-100 dark:bg-zinc-800',
-    outline: 'border border-zinc-300 dark:border-zinc-700',
+    primary: 'bg-ink-900 dark:bg-ink-100',
+    secondary: 'bg-ink-100 dark:bg-ink-800',
+    outline: 'border border-ink-300 dark:border-ink-700',
     danger: 'bg-rose-600',
     ghost: '',
   };
@@ -63,9 +63,9 @@ export const Button: React.FC<ButtonProps> = ({
 };
 
 export const buttonTextColor: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary: 'text-white dark:text-zinc-900',
-  secondary: 'text-zinc-900 dark:text-zinc-100',
-  outline: 'text-zinc-800 dark:text-zinc-200',
+  primary: 'text-white dark:text-ink-900',
+  secondary: 'text-ink-900 dark:text-ink-100',
+  outline: 'text-ink-800 dark:text-ink-200',
   danger: 'text-white',
-  ghost: 'text-zinc-700 dark:text-zinc-300',
+  ghost: 'text-ink-700 dark:text-ink-300',
 };

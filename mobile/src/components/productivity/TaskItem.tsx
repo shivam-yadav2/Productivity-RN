@@ -53,8 +53,8 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, on
       className={cn(
         'flex-row items-center justify-between p-3 rounded-xl border',
         isCompleted
-          ? 'bg-zinc-50/60 dark:bg-zinc-900/40 border-zinc-200/50 dark:border-zinc-800/50 opacity-60'
-          : 'bg-white dark:bg-zinc-900 border-zinc-200/80 dark:border-zinc-800/80'
+          ? 'bg-ink-50/60 dark:bg-ink-900/40 border-ink-200/50 dark:border-ink-800/50 opacity-60'
+          : 'bg-white dark:bg-ink-900 border-ink-200/80 dark:border-ink-800/80'
       )}
     >
       <View className="flex-row items-start gap-3 min-w-0 flex-1">
@@ -63,7 +63,7 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, on
           hitSlop={8}
           className={cn(
             'w-5 h-5 rounded-lg border items-center justify-center mt-0.5 shrink-0',
-            isCompleted ? 'bg-emerald-600 border-emerald-600' : 'border-zinc-300 dark:border-zinc-600'
+            isCompleted ? 'bg-emerald-600 border-emerald-600' : 'border-ink-300 dark:border-ink-600'
           )}
           accessibilityLabel={isCompleted ? 'Mark incomplete' : 'Mark complete'}
         >
@@ -79,8 +79,8 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, on
             className={cn(
               'text-xs font-semibold',
               isCompleted
-                ? 'line-through text-zinc-400 dark:text-zinc-500'
-                : 'text-zinc-900 dark:text-zinc-100'
+                ? 'line-through text-ink-400 dark:text-ink-500'
+                : 'text-ink-900 dark:text-ink-100'
             )}
           >
             {task.title}
@@ -89,8 +89,8 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, on
           <View className="flex-row items-center gap-2 mt-1 flex-wrap">
             {task.dueDate && (
               <View className="flex-row items-center gap-1">
-                <Calendar size={12} color="#a1a1aa" />
-                <Text className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                <Calendar size={12} color="#A79D8C" />
+                <Text className="text-[11px] font-medium text-ink-500 dark:text-ink-400">
                   {formatDateDisplay(task.dueDate)}
                   {task.dueTime && ` • ${formatTimeDisplay(task.dueTime)}`}
                 </Text>
@@ -104,7 +104,7 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, on
             )}
 
             {task.tags && task.tags.length > 0 && (
-              <Text className="text-[10px] text-zinc-400">#{task.tags[0]}</Text>
+              <Text className="text-[10px] text-ink-400">#{task.tags[0]}</Text>
             )}
           </View>
         </View>
@@ -116,7 +116,7 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({ task, onClick, on
           className="p-2 rounded-lg ml-2 shrink-0 active:bg-blue-50 dark:active:bg-blue-950/40"
           accessibilityLabel="Start focus timer on this task"
         >
-          <Play size={16} color="#a1a1aa" fill="#a1a1aa" />
+          <Play size={16} color="#A79D8C" fill="#A79D8C" />
         </Pressable>
       )}
     </PressableScale>

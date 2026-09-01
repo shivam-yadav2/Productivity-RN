@@ -103,16 +103,16 @@ export const PinLockScreen: React.FC = () => {
   return (
     <Animated.View
       entering={reduced ? undefined : FadeIn.duration(timing.base.duration)}
-      style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between', padding: 24, backgroundColor: '#18181b' }}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between', padding: 24, backgroundColor: '#18161D' }}
     >
       <View className="flex-1 items-center justify-center gap-4">
-        <View className="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-700 items-center justify-center">
-          <Lock size={32} color="#d4d4d8" />
+        <View className="w-16 h-16 rounded-2xl bg-ink-800 border border-ink-700 items-center justify-center">
+          <Lock size={32} color="#CCC3B2" />
         </View>
 
         <View className="items-center">
-          <Text className="text-lg font-bold text-zinc-100">Private & Secured</Text>
-          <Text className="text-xs text-zinc-400 mt-1">Enter your 4-digit PIN to access your data</Text>
+          <Text className="text-lg font-bold text-ink-100">Private & Secured</Text>
+          <Text className="text-xs text-ink-400 mt-1">Enter your 4-digit PIN to access your data</Text>
         </View>
 
         {/* PIN Dots */}
@@ -136,10 +136,10 @@ export const PinLockScreen: React.FC = () => {
               onPress={() => handleDigit(d)}
               activeScale={0.92}
               haptic
-              className="h-16 rounded-2xl bg-zinc-800/80 items-center justify-center"
+              className="h-16 rounded-2xl bg-ink-800/80 items-center justify-center"
               style={{ width: '30%' }}
             >
-              <Text className="text-2xl font-bold font-mono text-zinc-100">{d}</Text>
+              <Text className="text-2xl font-bold font-mono text-ink-100">{d}</Text>
             </PressableScale>
           ))}
 
@@ -147,11 +147,11 @@ export const PinLockScreen: React.FC = () => {
             <PressableScale
               onPress={handleBiometricPress}
               activeScale={0.92}
-              className="h-16 rounded-2xl bg-zinc-800/40 items-center justify-center"
+              className="h-16 rounded-2xl bg-ink-800/40 items-center justify-center"
               style={{ width: '30%' }}
               accessibilityLabel="Unlock with biometrics"
             >
-              <Fingerprint size={24} color="#a1a1aa" />
+              <Fingerprint size={24} color="#A79D8C" />
             </PressableScale>
           ) : (
             <View style={{ width: '30%' }} />
@@ -161,20 +161,20 @@ export const PinLockScreen: React.FC = () => {
             onPress={() => handleDigit('0')}
             activeScale={0.92}
             haptic
-            className="h-16 rounded-2xl bg-zinc-800/80 items-center justify-center"
+            className="h-16 rounded-2xl bg-ink-800/80 items-center justify-center"
             style={{ width: '30%' }}
           >
-            <Text className="text-2xl font-bold font-mono text-zinc-100">0</Text>
+            <Text className="text-2xl font-bold font-mono text-ink-100">0</Text>
           </PressableScale>
 
           <PressableScale
             onPress={handleDelete}
             activeScale={0.92}
-            className="h-16 rounded-2xl bg-zinc-800/40 items-center justify-center"
+            className="h-16 rounded-2xl bg-ink-800/40 items-center justify-center"
             style={{ width: '30%' }}
             accessibilityLabel="Delete digit"
           >
-            <Delete size={24} color="#a1a1aa" />
+            <Delete size={24} color="#A79D8C" />
           </PressableScale>
         </View>
       </View>

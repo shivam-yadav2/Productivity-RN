@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, useColorScheme } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   Plus,
@@ -26,6 +26,7 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { FadeSwap } from '../components/ui/FadeSwap';
 import { Transaction } from '../types';
 import { cn } from '../utils/cn';
+import { accent } from '../utils/theme';
 
 interface MoneyScreenProps {
   onOpenAddExpense: () => void;
@@ -54,6 +55,11 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
 }) => {
   const { db } = useDatabase();
   const [activeTab, setActiveTab] = useState<'TRANSACTIONS' | 'ANALYTICS' | 'BUDGETS'>('TRANSACTIONS');
+  const isDark = useColorScheme() === 'dark';
+
+  const heroBg = isDark ? accent.purple.deep : accent.purple.base;
+  const heroBorder = accent.purple.base + '40';
+  const heroMuted = isDark ? '#FFFFFFB3' : '#FFFFFFCC';
 
   const accounts = Object.values(db.accounts).filter((a) => a.isActive);
   const totalBalanceMinor = accounts.reduce((sum, a) => sum + a.currentBalanceMinor, 0);
@@ -71,49 +77,54 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
         {/* Header with Title & Quick Manage Triggers */}
         <View className="flex-row items-center justify-between pt-1">
           <View className="flex flex-col">
-            <Text className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <Text className="text-xl font-jakarta-extrabold text-ink-900 dark:text-ink-100 tracking-tight">
               Personal Finance
             </Text>
-            <Text className="text-xs text-zinc-500">Offline multi-account ledger & analytics</Text>
+            <Text className="text-xs text-ink-500">Offline multi-account ledger & analytics</Text>
           </View>
 
           <View className="flex-row items-center gap-1.5">
             <Pressable
               onPress={onOpenAccountsManager}
-              className="px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 active:bg-zinc-200 dark:active:bg-zinc-700"
+              className="px-2.5 py-1.5 rounded-xl bg-ink-100 dark:bg-ink-800 active:bg-ink-200 dark:active:bg-ink-700"
             >
-              <Text className="text-zinc-700 dark:text-zinc-300 text-xs font-semibold">Accounts</Text>
+              <Text className="text-ink-700 dark:text-ink-300 text-xs font-semibold">Accounts</Text>
             </Pressable>
             <Pressable
               onPress={onOpenCategoriesManager}
-              className="px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 active:bg-zinc-200 dark:active:bg-zinc-700"
+              className="px-2.5 py-1.5 rounded-xl bg-ink-100 dark:bg-ink-800 active:bg-ink-200 dark:active:bg-ink-700"
             >
-              <Text className="text-zinc-700 dark:text-zinc-300 text-xs font-semibold">Categories</Text>
+              <Text className="text-ink-700 dark:text-ink-300 text-xs font-semibold">Categories</Text>
             </Pressable>
           </View>
         </View>
 
-        {/* Account Balances Scrollable Strip */}
+        {/* Account Balances Scrollable Strip — the balance hero is a Tier-2 flat-purple
+            dashboard surface; the per-account cards below it stay on the neutral Tier-1
+            palette so the hero reads as the one "headline" card in the strip. */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-          <View className="w-40 p-3.5 rounded-2xl bg-zinc-900 dark:bg-zinc-800 flex flex-col justify-between border border-zinc-800">
-            <Text className="text-[11px] text-zinc-400 font-medium">Total Liquid Net</Text>
+          <View
+            className="w-40 p-3.5 rounded-3xl flex flex-col justify-between border"
+            style={{ backgroundColor: heroBg, borderColor: heroBorder }}
+          >
+            <Text className="text-[11px] font-medium" style={{ color: heroMuted }}>Total Liquid Net</Text>
             <AnimatedCurrency
               valueMinor={totalBalanceMinor}
               currency={currency}
               numberOfLines={1}
-              className="text-base font-bold text-white mt-2"
+              className="text-base font-jakarta-extrabold text-white mt-2"
             />
-            <Text className="text-[10px] text-zinc-400 mt-1">{accounts.length} Active Accounts</Text>
+            <Text className="text-[10px] mt-1" style={{ color: heroMuted }}>{accounts.length} Active Accounts</Text>
           </View>
 
           {accounts.map((acc) => (
             <Pressable
               key={acc.id}
               onPress={onOpenAccountsManager}
-              className="w-[150px] p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 flex flex-col justify-between active:border-zinc-300 dark:active:border-zinc-700"
+              className="w-[150px] p-3.5 rounded-3xl bg-surface dark:bg-surface-dark border border-ink-200/80 dark:border-ink-800/80 flex flex-col justify-between active:border-ink-300 dark:active:border-ink-700"
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex-1 pr-2" numberOfLines={1}>
+                <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200 flex-1 pr-2" numberOfLines={1}>
                   {acc.name}
                 </Text>
                 <View
@@ -124,11 +135,11 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
                 </View>
               </View>
 
-              <Text className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mt-2" numberOfLines={1}>
+              <Text className="text-sm font-bold text-ink-900 dark:text-ink-100 mt-2" numberOfLines={1}>
                 {formatCurrency(acc.currentBalanceMinor, acc.currency)}
               </Text>
 
-              <Text className="text-[10px] text-zinc-400 uppercase tracking-wider mt-1">
+              <Text className="text-[10px] text-ink-400 uppercase tracking-wider mt-1">
                 {acc.type.replace('_', ' ')}
               </Text>
             </Pressable>
@@ -167,7 +178,7 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2">
                   <CalendarClock size={16} color="#6366f1" />
-                  <Text className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300">
                     Scheduled & Subscriptions
                   </Text>
                 </View>
@@ -176,7 +187,7 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
                 </Button>
               </View>
 
-              <Text className="text-xs text-zinc-500 mt-3">
+              <Text className="text-xs text-ink-500 mt-3">
                 Manage automatic rules for rent, recurring EMIs, streaming subscriptions, and salary.
               </Text>
             </Card>
@@ -193,7 +204,7 @@ export const MoneyScreen: React.FC<MoneyScreenProps> = ({
       {/* Each button takes an equal third: `style` lands on Button's animated wrapper
           (the flex item), while `className` styles the Pressable inside it. */}
       <View
-        className="flex-row items-center gap-2 bg-white/90 dark:bg-zinc-900/90 p-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80"
+        className="flex-row items-center gap-2 bg-surface/90 dark:bg-surface-dark/90 p-2 rounded-3xl border border-ink-200/80 dark:border-ink-800/80"
         style={{ elevation: 6, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8 }}
       >
         <Button

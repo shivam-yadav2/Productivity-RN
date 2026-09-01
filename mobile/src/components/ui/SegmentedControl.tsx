@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { audioService } from '../../services/audioService';
 import { spring, useReducedMotion } from '../../utils/motion';
 import { cn } from '../../utils/cn';
+import { ink, inkText, surface } from '../../utils/theme';
 
 type IconType = React.ComponentType<{ size?: number; color?: string }>;
 
@@ -54,14 +55,14 @@ export function SegmentedControl<T extends string>({
     width: segWidth,
   }));
 
-  const activeText = isDark ? '#f4f4f5' : '#18181b';
-  const mutedText = '#71717a';
+  const activeText = inkText(isDark);
+  const mutedText = ink[500];
   const py = size === 'sm' ? 'py-1.5' : 'py-2';
 
   return (
     <View
       onLayout={(e: LayoutChangeEvent) => setTrackWidth(e.nativeEvent.layout.width)}
-      className={cn('flex-row items-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/70', className)}
+      className={cn('flex-row items-center rounded-2xl bg-ink-100 dark:bg-ink-800/70', className)}
       style={{ padding: PADDING }}
     >
       {segWidth > 0 && (
@@ -74,7 +75,7 @@ export function SegmentedControl<T extends string>({
               bottom: PADDING,
               left: PADDING,
               borderRadius: 12,
-              backgroundColor: isDark ? '#18181b' : '#ffffff',
+              backgroundColor: isDark ? ink[900] : surface.light,
               shadowColor: '#000',
               shadowOpacity: 0.06,
               shadowRadius: 4,
@@ -105,7 +106,7 @@ export function SegmentedControl<T extends string>({
               numberOfLines={1}
               className={cn(
                 'text-xs font-bold',
-                isActive ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'
+                isActive ? 'text-ink-900 dark:text-ink-100' : 'text-ink-500'
               )}
             >
               {seg.label}

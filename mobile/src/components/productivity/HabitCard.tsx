@@ -11,6 +11,7 @@ import { spring, useReducedMotion } from '../../utils/motion';
 import { Flame, Check, Edit2 } from 'lucide-react-native';
 import { audioService } from '../../services/audioService';
 import { cn } from '../../utils/cn';
+import { ink } from '../../utils/theme';
 
 interface HabitCardProps {
   habit: Habit;
@@ -50,7 +51,7 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
       exiting={reduced ? undefined : listItemExiting}
       layout={reduced ? undefined : listItemLayout}
     >
-    <View className="p-4 rounded-lg bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] flex flex-col gap-3">
+    <View className="p-4 rounded-lg bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 flex flex-col gap-3">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 min-w-0 flex-1">
           <View
@@ -61,15 +62,15 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
           </View>
 
           <View className="flex flex-col min-w-0 flex-1">
-            <Text numberOfLines={1} className="text-xs font-bold text-[#1A1A1A] dark:text-[#F3F3F1]">
+            <Text numberOfLines={1} className="text-xs font-bold text-ink-900 dark:text-ink-100">
               {habit.name}
             </Text>
             <View className="flex-row items-center gap-1.5">
               <Flame size={14} color="#f59e0b" fill="#f59e0b" />
-              <Text className="text-[11px] font-semibold text-[#1A1A1A] dark:text-[#D4D4D0]">
+              <Text className="text-[11px] font-semibold text-ink-900 dark:text-ink-200">
                 {stats.currentStreak} day streak
               </Text>
-              <Text className="text-[11px] text-[#999996]">• Best: {stats.bestStreak}d</Text>
+              <Text className="text-[11px] text-ink-400">• Best: {stats.bestStreak}d</Text>
             </View>
           </View>
         </View>
@@ -77,10 +78,10 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
         <View className="flex-row items-center gap-2">
           <Pressable
             onPress={() => onEdit(habit)}
-            className="p-1.5 rounded-md active:bg-zinc-100 dark:active:bg-zinc-800"
+            className="p-1.5 rounded-md active:bg-ink-100 dark:active:bg-ink-800"
             accessibilityLabel="Edit habit"
           >
-            <Edit2 size={14} color="#999996" />
+            <Edit2 size={14} color={ink[400]} />
           </Pressable>
 
           <PressableScale
@@ -89,23 +90,23 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
             className={cn(
               'w-8 h-8 rounded-md items-center justify-center shrink-0 border',
               isCompletedToday
-                ? 'bg-[#1A1A1A] dark:bg-[#EDEDEB] border-transparent'
-                : 'bg-[#F9F9F8] dark:bg-[#252523] border-[#E5E5E2] dark:border-[#333330]'
+                ? 'bg-ink-900 dark:bg-ink-100 border-transparent'
+                : 'bg-ink-50 dark:bg-ink-800 border-ink-200 dark:border-ink-700'
             )}
             accessibilityLabel={isCompletedToday ? 'Completed today! Tap to undo' : 'Mark done for today'}
           >
             {isCompletedToday ? (
               <Animated.View key="done" entering={reduced ? undefined : popIn}>
-                <Check size={16} color={isDark ? '#1A1A1A' : '#fff'} strokeWidth={3} />
+                <Check size={16} color={isDark ? ink[900] : '#fff'} strokeWidth={3} />
               </Animated.View>
             ) : (
-              <Check size={16} color="#999996" strokeWidth={3} />
+              <Check size={16} color={ink[400]} strokeWidth={3} />
             )}
           </PressableScale>
         </View>
       </View>
 
-      <View className="flex-row items-center justify-between pt-2.5 border-t border-[#F0F0EE] dark:border-[#2C2C29]">
+      <View className="flex-row items-center justify-between pt-2.5 border-t border-ink-100 dark:border-ink-800">
         {past7Days.map((dateStr) => {
           const isDone = stats.loggedDates.has(dateStr);
           const isCurrentDay = dateStr === todayStr;
@@ -119,7 +120,7 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
               <Text
                 className={cn(
                   'text-[10px] font-medium',
-                  isCurrentDay ? 'text-[#1A1A1A] dark:text-white font-bold' : 'text-[#71716E]'
+                  isCurrentDay ? 'text-ink-900 dark:text-white font-bold' : 'text-ink-500'
                 )}
               >
                 {formatShortDay(dateStr)}
@@ -128,13 +129,13 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
                 className={cn(
                   'w-6 h-6 rounded-md items-center justify-center border',
                   isDone
-                    ? 'bg-[#1A1A1A] dark:bg-[#EDEDEB] border-transparent'
-                    : 'bg-[#F9F9F8] dark:bg-[#252523] border-[#E5E5E2] dark:border-[#333330]'
+                    ? 'bg-ink-900 dark:bg-ink-100 border-transparent'
+                    : 'bg-ink-50 dark:bg-ink-800 border-ink-200 dark:border-ink-700'
                 )}
               >
                 {isDone ? (
                   <Animated.View key="done" entering={reduced ? undefined : popIn}>
-                    <Check size={14} color={isDark ? '#1A1A1A' : '#fff'} strokeWidth={3} />
+                    <Check size={14} color={isDark ? ink[900] : '#fff'} strokeWidth={3} />
                   </Animated.View>
                 ) : (
                   <Text className="text-[10px] text-transparent">•</Text>

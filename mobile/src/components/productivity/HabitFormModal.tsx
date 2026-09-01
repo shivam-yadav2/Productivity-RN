@@ -105,7 +105,7 @@ export const HabitFormModal: React.FC<HabitFormModalProps> = ({ habit, isOpen, o
         />
 
         <View className="flex flex-col gap-1.5">
-          <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Color & Icon</Text>
+          <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">Color & Icon</Text>
           <View className="flex-row items-center gap-2 flex-wrap mb-2">
             {HABIT_COLORS.map((c) => (
               <Pressable
@@ -116,24 +116,24 @@ export const HabitFormModal: React.FC<HabitFormModalProps> = ({ habit, isOpen, o
                   backgroundColor: c,
                   transform: color === c ? [{ scale: 1.25 }] : undefined,
                   borderWidth: color === c ? 2 : 0,
-                  borderColor: '#18181b',
+                  borderColor: '#18161D',
                 }}
               />
             ))}
           </View>
 
-          <View className="flex-row flex-wrap gap-1.5 p-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700">
+          <View className="flex-row flex-wrap gap-1.5 p-1 bg-ink-50 dark:bg-ink-800/50 rounded-xl border border-ink-200 dark:border-ink-700">
             {HABIT_ICONS.map((ic) => (
               <Pressable
                 key={ic}
                 onPress={() => setIcon(ic)}
                 className={cn(
                   'p-2 rounded-lg items-center justify-center',
-                  icon === ic ? 'bg-zinc-900 dark:bg-zinc-100' : 'active:bg-zinc-200/60 dark:active:bg-zinc-700/60'
+                  icon === ic ? 'bg-ink-900 dark:bg-ink-100' : 'active:bg-ink-200/60 dark:active:bg-ink-700/60'
                 )}
                 style={{ width: '15%' }}
               >
-                <IconHelper name={ic} size={18} color={icon === ic ? (isDark ? '#18181b' : '#fff') : '#71717a'} />
+                <IconHelper name={ic} size={18} color={icon === ic ? (isDark ? '#18161D' : '#fff') : '#8A8680'} />
               </Pressable>
             ))}
           </View>
@@ -141,7 +141,7 @@ export const HabitFormModal: React.FC<HabitFormModalProps> = ({ habit, isOpen, o
 
         {error && <Text className="text-xs text-rose-500 font-semibold">{error}</Text>}
 
-        <View className="flex-row items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-between pt-3 border-t border-ink-100 dark:border-ink-800">
           {habit ? (
             <Pressable onPress={handleDelete} className="p-2 rounded-xl active:bg-rose-50 dark:active:bg-rose-950/40" accessibilityLabel="Delete habit">
               <Trash2 size={16} color="#e11d48" />

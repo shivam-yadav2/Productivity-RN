@@ -34,7 +34,7 @@ const ACCOUNT_TYPE_OPTIONS: { label: string; value: AccountType }[] = [
 export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOpen, onClose }) => {
   const { db } = useDatabase();
   const { resolvedTheme } = useTheme();
-  const selectedAccentColor = resolvedTheme === 'dark' ? '#18181b' : '#ffffff';
+  const selectedAccentColor = resolvedTheme === 'dark' ? '#18161D' : '#ffffff';
   const [isCreating, setIsCreating] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
 
@@ -142,7 +142,7 @@ export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOp
 
           {/* Color & Icon Picker */}
           <View className="flex-col gap-1.5">
-            <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Icon & Color</Text>
+            <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">Icon & Color</Text>
             <View className="flex-row items-center gap-2 flex-wrap mb-2">
               {ACCOUNT_COLORS.map((c) => (
                 <Pressable
@@ -163,11 +163,11 @@ export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOp
                   onPress={() => setIcon(ic)}
                   className={
                     icon === ic
-                      ? 'p-2 rounded-xl border border-transparent bg-zinc-900 dark:bg-zinc-100'
-                      : 'p-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800'
+                      ? 'p-2 rounded-xl border border-transparent bg-ink-900 dark:bg-ink-100'
+                      : 'p-2 rounded-xl border border-ink-200 dark:border-ink-700 bg-ink-50 dark:bg-ink-800'
                   }
                 >
-                  <IconHelper name={ic} size={18} color={icon === ic ? selectedAccentColor : '#71717a'} />
+                  <IconHelper name={ic} size={18} color={icon === ic ? selectedAccentColor : '#8A8680'} />
                 </Pressable>
               ))}
             </View>
@@ -175,7 +175,7 @@ export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOp
 
           {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
-          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
             <Button variant="ghost" onPress={() => setIsCreating(false)}>
               <Text className={buttonTextColor.ghost}>Back</Text>
             </Button>
@@ -187,7 +187,7 @@ export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOp
       ) : (
         <View className="flex-col gap-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs text-zinc-500 font-medium">{accounts.length} Total Accounts</Text>
+            <Text className="text-xs text-ink-500 font-medium">{accounts.length} Total Accounts</Text>
             <Button size="sm" onPress={handleStartCreate}>
               <Plus size={16} color="#ffffff" />
               <Text className={buttonTextColor.primary}>Add Account</Text>
@@ -199,7 +199,7 @@ export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOp
               {accounts.map((acc) => (
                 <View
                   key={acc.id}
-                  className="flex-row items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800"
+                  className="flex-row items-center justify-between p-3 rounded-2xl bg-ink-50 dark:bg-ink-800/50 border border-ink-200/70 dark:border-ink-800"
                 >
                   <View className="flex-row items-center gap-3 flex-1 min-w-0 pr-2">
                     <View
@@ -211,30 +211,30 @@ export const AccountsManagerModal: React.FC<AccountsManagerModalProps> = ({ isOp
 
                     <View className="flex-col min-w-0">
                       <View className="flex-row items-center gap-2">
-                        <Text numberOfLines={1} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                        <Text numberOfLines={1} className="text-sm font-semibold text-ink-900 dark:text-ink-100">
                           {acc.name}
                         </Text>
                         {!acc.isActive && (
-                          <View className="px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded">
-                            <Text className="text-[10px] text-zinc-600 dark:text-zinc-400">Archived</Text>
+                          <View className="px-1.5 py-0.5 bg-ink-200 dark:bg-ink-700 rounded">
+                            <Text className="text-[10px] text-ink-600 dark:text-ink-400">Archived</Text>
                           </View>
                         )}
                       </View>
-                      <Text className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      <Text className="text-xs font-medium text-ink-600 dark:text-ink-400">
                         Balance: {formatCurrency(acc.currentBalanceMinor, acc.currency)}
                       </Text>
                     </View>
                   </View>
 
                   <View className="flex-row items-center gap-1 shrink-0">
-                    <Pressable onPress={() => handleStartEdit(acc)} className="p-1.5 active:bg-zinc-200/60 dark:active:bg-zinc-700 rounded-lg">
-                      <Edit2 size={16} color="#71717a" />
+                    <Pressable onPress={() => handleStartEdit(acc)} className="p-1.5 active:bg-ink-200/60 dark:active:bg-ink-700 rounded-lg">
+                      <Edit2 size={16} color="#8A8680" />
                     </Pressable>
                     <Pressable
                       onPress={() => handleToggleActive(acc)}
-                      className="p-1.5 active:bg-zinc-200/60 dark:active:bg-zinc-700 rounded-lg"
+                      className="p-1.5 active:bg-ink-200/60 dark:active:bg-ink-700 rounded-lg"
                     >
-                      <Archive size={16} color={acc.isActive ? '#a1a1aa' : '#16a34a'} />
+                      <Archive size={16} color={acc.isActive ? '#A79D8C' : '#16a34a'} />
                     </Pressable>
                   </View>
                 </View>

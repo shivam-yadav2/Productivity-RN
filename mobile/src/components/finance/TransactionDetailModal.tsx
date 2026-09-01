@@ -59,7 +59,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Transaction Details" maxWidth="sm">
       <View className="flex-col gap-5">
         {/* Amount & Type Hero Card */}
-        <View className="items-center justify-center p-5 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200/70 dark:border-zinc-800">
+        <View className="items-center justify-center p-5 bg-ink-50 dark:bg-ink-800/40 rounded-2xl border border-ink-200/70 dark:border-ink-800">
           <View
             className="w-12 h-12 rounded-2xl items-center justify-center mb-2 border"
             style={{
@@ -83,7 +83,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               isIncome
                 ? 'text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400'
                 : isExpense
-                ? 'text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100'
+                ? 'text-2xl font-bold tracking-tight text-ink-900 dark:text-ink-100'
                 : 'text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400'
             }
           >
@@ -91,7 +91,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             {formatCurrency(transaction.amountMinor, currency, { showDecimals: true })}
           </Text>
 
-          <Text className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mt-1">
+          <Text className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wider mt-1">
             {transaction.type}
           </Text>
         </View>
@@ -99,46 +99,46 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         {/* Breakdown List */}
         <View className="flex-col gap-2.5">
           {!isTransfer && (
-            <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800/70">
-              <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">Category</Text>
+            <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800/70">
+              <Text className="text-ink-500 dark:text-ink-400 text-xs font-medium">Category</Text>
               <View className="flex-row items-center gap-1.5">
-                <IconHelper name={category?.icon || 'Tag'} size={16} color="#71717a" />
-                <Text className="font-medium text-zinc-900 dark:text-zinc-100">
+                <IconHelper name={category?.icon || 'Tag'} size={16} color="#8A8680" />
+                <Text className="font-medium text-ink-900 dark:text-ink-100">
                   {category?.name || 'Uncategorized'}
                 </Text>
               </View>
             </View>
           )}
 
-          <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800/70">
-            <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">
+          <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800/70">
+            <Text className="text-ink-500 dark:text-ink-400 text-xs font-medium">
               {isTransfer ? 'From Account' : 'Account'}
             </Text>
-            <Text className="font-medium text-zinc-900 dark:text-zinc-100">
+            <Text className="font-medium text-ink-900 dark:text-ink-100">
               {sourceAccount?.name || 'Unknown Account'}
             </Text>
           </View>
 
           {isTransfer && (
-            <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800/70">
-              <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">To Account</Text>
-              <Text className="font-medium text-zinc-900 dark:text-zinc-100">
+            <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800/70">
+              <Text className="text-ink-500 dark:text-ink-400 text-xs font-medium">To Account</Text>
+              <Text className="font-medium text-ink-900 dark:text-ink-100">
                 {destAccount?.name || 'Unknown Account'}
               </Text>
             </View>
           )}
 
-          <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800/70">
-            <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">Date & Time</Text>
-            <Text className="font-medium text-zinc-800 dark:text-zinc-200 text-xs">
+          <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800/70">
+            <Text className="text-ink-500 dark:text-ink-400 text-xs font-medium">Date & Time</Text>
+            <Text className="font-medium text-ink-800 dark:text-ink-200 text-xs">
               {formatFullDate(transaction.date, transaction.time)}
             </Text>
           </View>
 
           {transaction.note && (
-            <View className="flex-col gap-1 py-1.5 border-b border-zinc-100 dark:border-zinc-800/70">
-              <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">Note</Text>
-              <Text className="text-xs text-zinc-800 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 p-2.5 rounded-xl">
+            <View className="flex-col gap-1 py-1.5 border-b border-ink-100 dark:border-ink-800/70">
+              <Text className="text-ink-500 dark:text-ink-400 text-xs font-medium">Note</Text>
+              <Text className="text-xs text-ink-800 dark:text-ink-200 bg-ink-50 dark:bg-ink-800/50 p-2.5 rounded-xl">
                 {transaction.note}
               </Text>
             </View>
@@ -146,11 +146,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
           {transaction.tags && transaction.tags.length > 0 && (
             <View className="flex-row items-center justify-between py-1.5">
-              <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">Tags</Text>
+              <Text className="text-ink-500 dark:text-ink-400 text-xs font-medium">Tags</Text>
               <View className="flex-row items-center gap-1.5 flex-wrap">
                 {transaction.tags.map((t) => (
-                  <View key={t} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-md">
-                    <Text className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">#{t}</Text>
+                  <View key={t} className="px-2 py-0.5 bg-ink-100 dark:bg-ink-800 rounded-md">
+                    <Text className="text-xs text-ink-700 dark:text-ink-300 font-medium">#{t}</Text>
                   </View>
                 ))}
               </View>
@@ -184,7 +184,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </View>
         ) : (
           /* Action Buttons */
-          <View className="flex-row gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <View className="flex-row gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
             <Button
               variant="outline"
               size="sm"

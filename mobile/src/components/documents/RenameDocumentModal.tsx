@@ -52,7 +52,7 @@ export const RenameDocumentModal: React.FC<RenameDocumentModalProps> = ({
 
         {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
-        <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
           <Button variant="ghost" onPress={onClose}>
             <Text className={buttonTextColor.ghost}>Cancel</Text>
           </Button>

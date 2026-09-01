@@ -4,6 +4,7 @@ import { taskRepository } from '../../database/repositories/taskRepo';
 import { getTodayDateString } from '../../utils/date';
 import { Plus } from 'lucide-react-native';
 import { audioService } from '../../services/audioService';
+import { ink } from '../../utils/theme';
 
 interface TaskQuickAddProps {
   onTaskAdded?: () => void;
@@ -34,17 +35,17 @@ export const TaskQuickAdd: React.FC<TaskQuickAddProps> = ({ onTaskAdded }) => {
         onChangeText={setTitle}
         onSubmitEditing={handleSubmit}
         placeholder="Quick capture task for today..."
-        placeholderTextColor="#71716E"
-        className="w-full pl-3.5 pr-11 py-2 text-xs bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-md text-[#1A1A1A] dark:text-[#EDEDEB]"
+        placeholderTextColor={ink[500]}
+        className="w-full pl-3.5 pr-11 py-2 text-xs bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 rounded-md text-ink-900 dark:text-ink-100"
       />
       <Pressable
         onPress={handleSubmit}
         disabled={!title.trim()}
-        className="absolute right-1.5 p-1.5 rounded-md bg-[#1A1A1A] dark:bg-[#EDEDEB]"
+        className="absolute right-1.5 p-1.5 rounded-md bg-ink-900 dark:bg-ink-100"
         style={{ opacity: title.trim() ? 1 : 0.3 }}
         accessibilityLabel="Add task"
       >
-        <Plus size={14} color={isDark ? '#1A1A1A' : '#fff'} />
+        <Plus size={14} color={isDark ? ink[900] : '#fff'} />
       </Pressable>
     </View>
   );

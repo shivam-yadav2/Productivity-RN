@@ -27,6 +27,7 @@ import {
 } from 'lucide-react-native';
 import { audioService } from '../../services/audioService';
 import { cn } from '../../utils/cn';
+import { ink } from '../../utils/theme';
 
 interface SettingsViewProps {
   onOpenAccountsManager: () => void;
@@ -121,14 +122,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     <View className="flex-col gap-5 pb-8">
       {/* Visual & Audio Preferences */}
       <Card>
-        <Text className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+        <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">
           Appearance & Feedback
         </Text>
 
-        <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800">
           <View className="flex-row items-center gap-2">
             {theme === 'dark' ? <Moon size={16} color="#818cf8" /> : <Sun size={16} color="#f59e0b" />}
-            <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Theme</Text>
+            <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">Theme</Text>
           </View>
           <Button variant="secondary" size="sm" onPress={toggleTheme}>
             <Text className={cn('text-xs font-semibold', buttonTextColor.secondary)}>
@@ -137,10 +138,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </Button>
         </View>
 
-        <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800">
           <View className="flex-row items-center gap-2">
-            <Volume2 size={16} color="#71717a" />
-            <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Sound Effects</Text>
+            <Volume2 size={16} color={ink[500]} />
+            <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">Sound Effects</Text>
           </View>
           <Switch
             value={db.settings.soundEnabled}
@@ -150,8 +151,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <View className="flex-row items-center justify-between py-1.5">
           <View className="flex-row items-center gap-2">
-            <Vibrate size={16} color="#71717a" />
-            <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Haptic Feedback</Text>
+            <Vibrate size={16} color={ink[500]} />
+            <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">Haptic Feedback</Text>
           </View>
           <Switch
             value={db.settings.hapticEnabled ?? db.settings.hapticsEnabled ?? true}
@@ -165,11 +166,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Currency & Financial Configuration */}
       <Card>
-        <Text className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+        <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">
           Finance Configuration
         </Text>
 
-        <View className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <View className="pb-3 border-b border-ink-100 dark:border-ink-800">
           <Select
             label="Primary Currency"
             value={db.settings.currency || 'INR'}
@@ -178,7 +179,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           />
         </View>
 
-        <View className="py-3 border-b border-zinc-100 dark:border-zinc-800">
+        <View className="py-3 border-b border-ink-100 dark:border-ink-800">
           <Select
             label="Default Account"
             value={db.settings.defaultAccountId || ''}
@@ -203,16 +204,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Security & App Lock */}
       <Card>
-        <Text className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+        <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">
           Security & Privacy
         </Text>
 
-        <View className="flex-row items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-between py-1.5 border-b border-ink-100 dark:border-ink-800">
           <View className="flex-row items-center gap-2 flex-1 pr-2">
-            <Lock size={16} color="#71717a" />
+            <Lock size={16} color={ink[500]} />
             <View>
-              <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">App PIN Lock</Text>
-              <Text className="text-[10px] text-zinc-400">
+              <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">App PIN Lock</Text>
+              <Text className="text-[10px] text-ink-400">
                 {hasPin ? 'PIN protection active' : 'No PIN configured'}
               </Text>
             </View>
@@ -230,8 +231,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </View>
 
         {showPinSetup && (
-          <View className="p-3 mt-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700 flex-col gap-2">
-            <Text className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Enter a 4-digit PIN:</Text>
+          <View className="p-3 mt-3 bg-ink-50 dark:bg-ink-800/60 rounded-xl border border-ink-200 dark:border-ink-700 flex-col gap-2">
+            <Text className="text-xs font-medium text-ink-700 dark:text-ink-300">Enter a 4-digit PIN:</Text>
             <View className="flex-row items-center gap-2">
               <View className="w-24">
                 <Input
@@ -261,10 +262,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <View className="flex-row items-center justify-between py-1.5 mt-1">
           <View className="flex-row items-center gap-2 flex-1 pr-2">
-            <Fingerprint size={16} color="#71717a" />
+            <Fingerprint size={16} color={ink[500]} />
             <View>
-              <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Biometric Unlock</Text>
-              <Text className="text-[10px] text-zinc-400">
+              <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">Biometric Unlock</Text>
+              <Text className="text-[10px] text-ink-400">
                 {isBiometricsAvailable ? 'Fingerprint / Face ID available' : 'No biometric hardware enrolled'}
               </Text>
             </View>
@@ -279,11 +280,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Backup, Export & Restore */}
       <Card>
-        <Text className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+        <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">
           Data Ownership & Backup
         </Text>
 
-        <Text className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+        <Text className="text-xs text-ink-600 dark:text-ink-400 mb-3">
           Your data never leaves your device. Export regular backups to retain full offline ownership.
         </Text>
 
@@ -302,24 +303,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </View>
         </View>
 
-        <View className="pt-3 mt-3 border-t border-zinc-100 dark:border-zinc-800 flex-row items-center justify-between">
+        <View className="pt-3 mt-3 border-t border-ink-100 dark:border-ink-800 flex-row items-center justify-between">
           <View className="flex-col flex-1 pr-2">
-            <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Restore Database</Text>
-            <Text className="text-[10px] text-zinc-400">Import a previously exported JSON backup</Text>
+            <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">Restore Database</Text>
+            <Text className="text-[10px] text-ink-400">Import a previously exported JSON backup</Text>
           </View>
 
           <Button variant="secondary" size="sm" onPress={handleImport}>
-            <Upload size={14} color="#3f3f46" />
+            <Upload size={14} color={ink[700]} />
             <Text className={cn('text-xs font-semibold ml-1', buttonTextColor.secondary)}>Select File</Text>
           </Button>
         </View>
 
-        <View className="pt-3 mt-3 border-t border-zinc-100 dark:border-zinc-800 flex-row items-center justify-between">
+        <View className="pt-3 mt-3 border-t border-ink-100 dark:border-ink-800 flex-row items-center justify-between">
           <View className="flex-col flex-1 pr-2">
-            <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+            <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">
               Import from Money Manager
             </Text>
-            <Text className="text-[10px] text-zinc-400">
+            <Text className="text-[10px] text-ink-400">
               Its Excel/CSV export. Missing accounts and categories are created automatically, and
               re-importing the same file will not duplicate rows.
             </Text>
@@ -331,7 +332,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onPress={handleImportMoneyManager}
             disabled={isImportingMM}
           >
-            {isImportingMM ? <Spinner size={14} color="#3f3f46" /> : <FileUp size={14} color="#3f3f46" />}
+            {isImportingMM ? <Spinner size={14} color={ink[700]} /> : <FileUp size={14} color={ink[700]} />}
             <Text className={cn('text-xs font-semibold ml-1', buttonTextColor.secondary)}>
               {isImportingMM ? 'Importing…' : 'Import'}
             </Text>
@@ -346,14 +347,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </Text>
 
         {showResetConfirm ? (
-          <View className="flex-col gap-2 p-3 bg-white dark:bg-zinc-900 rounded-xl border border-rose-300 dark:border-rose-800">
+          <View className="flex-col gap-2 p-3 bg-surface dark:bg-surface-dark rounded-xl border border-rose-300 dark:border-rose-800">
             <View className="flex-row items-center gap-2">
               <AlertTriangle size={16} color="#be123c" />
               <Text className="text-rose-700 dark:text-rose-400 text-xs font-bold flex-1">
                 Are you sure you want to reset all data?
               </Text>
             </View>
-            <Text className="text-[11px] text-zinc-600 dark:text-zinc-400">
+            <Text className="text-[11px] text-ink-600 dark:text-ink-400">
               This permanently erases every transaction, task, habit, budget and recurring rule on
               this device. Accounts and categories return to their defaults. This cannot be undone —
               export a backup first if you need one.
@@ -370,10 +371,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         ) : (
           <View className="flex-row items-center justify-between">
             <View className="flex-col flex-1 pr-2">
-              <Text className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+              <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">
                 Factory Reset Database
               </Text>
-              <Text className="text-[10px] text-zinc-500">Erase all records and start from a clean slate</Text>
+              <Text className="text-[10px] text-ink-500">Erase all records and start from a clean slate</Text>
             </View>
             <Button size="sm" variant="danger" onPress={() => setShowResetConfirm(true)}>
               <Trash2 size={14} color="#ffffff" />

@@ -24,7 +24,7 @@ interface SpinnerProps {
  */
 export const Spinner: React.FC<SpinnerProps> = ({
   size = 20,
-  color = '#18181b',
+  color = '#18161D',
   trackColor = '#e4e4e7',
   thickness = 2.5,
 }) => {

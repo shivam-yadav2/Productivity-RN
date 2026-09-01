@@ -6,6 +6,7 @@ import { useDatabase } from '../../context/DatabaseContext';
 import { searchAll, SearchResult } from '../../services/searchService';
 import { getDocumentIconName } from '../../services/documentStorage';
 import { IconHelper } from '../ui/IconHelper';
+import { ink } from '../../utils/theme';
 
 interface GlobalSearchOverlayProps {
   isOpen: boolean;
@@ -56,27 +57,27 @@ export const GlobalSearchOverlay: React.FC<GlobalSearchOverlayProps> = ({
 
   return (
     <Modal visible={isOpen} animationType="slide" presentationStyle="fullScreen" onRequestClose={handleClose}>
-      <SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
-        <View className="flex-row items-center gap-2 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-          <Pressable onPress={handleClose} className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg">
-            <ArrowLeft size={20} color="#71717a" />
+      <SafeAreaView className="flex-1 bg-white dark:bg-ink-950">
+        <View className="flex-row items-center gap-2 px-4 py-3 border-b border-ink-100 dark:border-ink-800">
+          <Pressable onPress={handleClose} className="p-1.5 active:bg-ink-100 dark:active:bg-ink-800 rounded-lg">
+            <ArrowLeft size={20} color={ink[500]} />
           </Pressable>
 
           <View className="flex-1 relative justify-center">
             <View className="absolute left-3 z-10">
-              <Search size={16} color="#71717a" />
+              <Search size={16} color={ink[500]} />
             </View>
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search transactions, tasks, habits, documents, notes..."
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={ink[400]}
               autoFocus
-              className="w-full pl-9 pr-8 py-2.5 text-sm bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-zinc-100"
+              className="w-full pl-9 pr-8 py-2.5 text-sm bg-ink-100 dark:bg-ink-900 border border-ink-200 dark:border-ink-800 rounded-xl text-ink-900 dark:text-ink-100"
             />
             {query ? (
               <Pressable onPress={() => setQuery('')} className="absolute right-2.5">
-                <X size={14} color="#71717a" />
+                <X size={14} color={ink[500]} />
               </Pressable>
             ) : null}
           </View>
@@ -93,16 +94,16 @@ export const GlobalSearchOverlay: React.FC<GlobalSearchOverlayProps> = ({
                 onSelectResult(item);
                 setQuery('');
               }}
-              className="flex-row items-center gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-800"
+              className="flex-row items-center gap-3 p-3 rounded-3xl bg-ink-50 dark:bg-ink-900 border border-ink-200/70 dark:border-ink-800 active:bg-ink-100 dark:active:bg-ink-800"
             >
               <View className="w-9 h-9 rounded-xl items-center justify-center shrink-0 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800">
                 <IconHelper name={resultIconName(item)} size={18} color="#2563eb" />
               </View>
               <View className="flex-1 min-w-0">
-                <Text numberOfLines={1} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                <Text numberOfLines={1} className="text-sm font-semibold text-ink-900 dark:text-ink-100">
                   {item.title}
                 </Text>
-                <Text numberOfLines={1} className="text-xs text-zinc-500 dark:text-zinc-400">
+                <Text numberOfLines={1} className="text-xs text-ink-500 dark:text-ink-400">
                   {TYPE_LABEL[item.type]} • {item.subtitle}
                 </Text>
               </View>
@@ -111,11 +112,11 @@ export const GlobalSearchOverlay: React.FC<GlobalSearchOverlayProps> = ({
           ListEmptyComponent={
             query.trim() ? (
               <View className="py-12 items-center">
-                <Text className="text-xs text-zinc-500 text-center">No results for "{query.trim()}".</Text>
+                <Text className="text-xs text-ink-500 text-center">No results for "{query.trim()}".</Text>
               </View>
             ) : (
               <View className="py-12 items-center">
-                <Text className="text-xs text-zinc-500 text-center">
+                <Text className="text-xs text-ink-500 text-center">
                   Search across transactions, tasks, habits, documents, and notes.
                 </Text>
               </View>

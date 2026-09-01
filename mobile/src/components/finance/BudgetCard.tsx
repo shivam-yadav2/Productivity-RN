@@ -6,64 +6,81 @@ import { formatCurrency } from '../../utils/currency';
 import { IconHelper } from '../ui/IconHelper';
 import { AnimatedBar } from '../ui/AnimatedBar';
 import { PiggyBank, Sliders } from 'lucide-react-native';
+import { accent, ink } from '../../utils/theme';
 
 interface BudgetCardProps {
   onOpenBudgetManager: () => void;
 }
 
+/** This card is a Tier-2 dashboard surface — flat orange color-block, not the neutral
+ *  `ink` palette used by the rest of the app's dense/data screens. */
 export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) => {
   const { db } = useDatabase();
   const isDark = useColorScheme() === 'dark';
   const { overall, categories } = budgetService.getMonthlyBudgetStatuses();
 
-  /** Matches the bar colours the card used as Tailwind classes before they moved inline. */
+  const cardBg = isDark ? accent.orange.deep : accent.orange.bg;
+  const cardBorder = accent.orange.base + '40';
+  const accentText = isDark ? accent.orange.bg : accent.orange.deep;
+  const primaryText = isDark ? '#FFFFFF' : ink[900];
+  const mutedText = isDark ? '#FFFFFFB3' : accent.orange.deep + 'B3';
+
   const barColor = (isOver: boolean, percentage: number, muted: boolean) => {
     if (isOver) return '#f43f5e';
     if (percentage > 85) return '#f59e0b';
-    if (muted) return isDark ? '#999996' : '#71716E';
-    return isDark ? '#EDEDEB' : '#1A1A1A';
+    if (muted) return mutedText;
+    return primaryText;
   };
 
   if (!overall && categories.length === 0) {
     return (
-      <View className="p-4 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex-row items-center justify-between">
+      <View
+        className="p-4 rounded-3xl flex-row items-center justify-between border"
+        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+      >
         <View className="flex-row items-center gap-3">
-          <View className="w-8 h-8 rounded-md bg-[#F0F0EE] dark:bg-[#252523] items-center justify-center">
-            <PiggyBank size={16} color="#1A1A1A" />
+          <View className="w-8 h-8 rounded-md items-center justify-center bg-white/40 dark:bg-black/15">
+            <PiggyBank size={16} color={accentText} />
           </View>
           <View>
-            <Text className="text-xs font-semibold text-[#1A1A1A] dark:text-[#F3F3F1]">Monthly Budgets</Text>
-            <Text className="text-[11px] text-[#71716E]">Track and limit monthly expenses</Text>
+            <Text className="text-xs font-semibold" style={{ color: primaryText }}>Monthly Budgets</Text>
+            <Text className="text-[11px]" style={{ color: mutedText }}>Track and limit monthly expenses</Text>
           </View>
         </View>
         <Pressable onPress={onOpenBudgetManager}>
-          <Text className="text-xs font-semibold text-[#1A1A1A] dark:text-[#EDEDEB]">Set Budget</Text>
+          <Text className="text-xs font-semibold" style={{ color: accentText }}>Set Budget</Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <View className="p-5 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex-col gap-3">
+    <View
+      className="p-5 rounded-3xl flex-col gap-3 border"
+      style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+    >
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
-          <PiggyBank size={16} color="#71716E" />
-          <Text className="text-xs font-bold uppercase tracking-wider text-[#71716E] dark:text-[#999996]">
+          <PiggyBank size={16} color={accentText} />
+          <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: accentText }}>
             Monthly Budgets
           </Text>
         </View>
         <Pressable onPress={onOpenBudgetManager} className="flex-row items-center gap-1">
-          <Sliders size={14} color="#71716E" />
-          <Text className="text-xs text-[#71716E] font-medium">Manage</Text>
+          <Sliders size={14} color={accentText} />
+          <Text className="text-xs font-medium" style={{ color: accentText }}>Manage</Text>
         </Pressable>
       </View>
 
       {/* Overall Budget Progress */}
       {overall && (
-        <View className="flex-col gap-1.5 p-3.5 rounded-md bg-[#F9F9F8] dark:bg-[#252523] border border-[#E5E5E2] dark:border-[#333330]">
+        <View
+          className="flex-col gap-1.5 p-3.5 rounded-2xl bg-white/40 dark:bg-black/15 border"
+          style={{ borderColor: cardBorder }}
+        >
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs font-semibold text-[#1A1A1A] dark:text-[#EDEDEB]">Total Monthly</Text>
-            <Text className="text-xs font-medium text-[#71716E]">
+            <Text className="text-xs font-semibold" style={{ color: primaryText }}>Total Monthly</Text>
+            <Text className="text-xs font-medium" style={{ color: mutedText }}>
               {formatCurrency(overall.spentMinor, db.settings.currency)} /{' '}
               {formatCurrency(overall.limitMinor, db.settings.currency)}
             </Text>
@@ -72,13 +89,13 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) =
           {/* Progress bar */}
           <AnimatedBar
             percent={Math.min(100, overall.percentage)}
-            trackClassName="h-1.5 bg-[#E5E5E2] dark:bg-[#333330] rounded-full"
+            trackClassName="h-1.5 bg-white/50 dark:bg-white/10 rounded-full"
             fillColor={barColor(overall.isOverBudget, overall.percentage, false)}
           />
 
           <View className="flex-row items-center justify-between">
-            <Text className="text-[11px] text-[#71716E]">{overall.percentage}% spent</Text>
-            <Text className="text-[11px] text-[#71716E]">
+            <Text className="text-[11px]" style={{ color: mutedText }}>{overall.percentage}% spent</Text>
+            <Text className="text-[11px]" style={{ color: mutedText }}>
               {overall.remainingMinor >= 0
                 ? `${formatCurrency(overall.remainingMinor, db.settings.currency)} left`
                 : `${formatCurrency(Math.abs(overall.remainingMinor), db.settings.currency)} over`}
@@ -94,12 +111,12 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) =
             <View key={catBudget.id} className="flex-col gap-1">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1.5 flex-1 min-w-0 pr-2">
-                  <IconHelper name={catBudget.categoryIcon} size={14} color="#71716E" />
-                  <Text numberOfLines={1} className="text-xs font-medium text-[#1A1A1A] dark:text-[#EDEDEB]">
+                  <IconHelper name={catBudget.categoryIcon} size={14} color={accentText} />
+                  <Text numberOfLines={1} className="text-xs font-medium" style={{ color: primaryText }}>
                     {catBudget.categoryName}
                   </Text>
                 </View>
-                <Text className="font-mono text-[11px] text-[#71716E] shrink-0">
+                <Text className="font-mono text-[11px] shrink-0" style={{ color: mutedText }}>
                   {formatCurrency(catBudget.spentMinor, db.settings.currency)} /{' '}
                   {formatCurrency(catBudget.limitMinor, db.settings.currency)}
                 </Text>
@@ -108,7 +125,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) =
               <AnimatedBar
                 percent={Math.min(100, catBudget.percentage)}
                 delay={i * 60}
-                trackClassName="h-1 bg-[#F0F0EE] dark:bg-[#333330] rounded-full"
+                trackClassName="h-1 bg-white/40 dark:bg-white/10 rounded-full"
                 fillColor={barColor(catBudget.isOverBudget, catBudget.percentage, true)}
               />
             </View>

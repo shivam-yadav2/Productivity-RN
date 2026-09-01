@@ -48,6 +48,19 @@ Reused conventions worth matching before inventing something new:
 - `audioService.playSoftClick()` / `.playSuccessTone()` / `.triggerHaptic(...)` fire on taps/saves/deletes throughout — check an existing modal for the exact moments if adding a new one.
 - Lucide icons (`lucide-react-native`) always take explicit `size`/`color` props — never `className` (see gotcha below).
 
+## Visual design system
+
+The app was restyled app-wide from stock Tailwind `zinc` grays to a bold, color-blocked look (bare warm neutrals + four pastel accents, rounded Plus Jakarta Sans display type, a floating pill bottom nav) matching a fitness-app-style reference the user approved. Two token sources, kept in sync **by hand** (no automatic link):
+- `tailwind.config.js` → `theme.extend.colors`: `ink` (a 50–950 warm-neutral scale, a 1:1 replacement for `zinc` by shade number), `surface` (`DEFAULT`/`dark`, replaces `bg-white`/`bg-zinc-900` card-background pairs), and four accent triplets `accentPurple`/`accentOrange`/`accentBlue`/`accentPink` (each `bg`/`DEFAULT`/`deep`). Plus `fontFamily.jakarta` / `fontFamily['jakarta-extrabold']`.
+- `src/utils/theme.ts` → the same values as raw hex, for the two places NativeWind `className` can't reach: `lucide-react-native` icon `color` props and Reanimated `useAnimatedStyle` interpolations. Exports `ink`, `surface`, `accent`, and helpers `inkText`/`inkMuted`/`inkBorder`/`themeBg`/`themeSurface` that resolve the right light/dark value from a single `isDark` boolean.
+
+**Tiered application, not a blanket restyle:**
+- *Tier 1 (everywhere)* — the mechanical neutral-palette swap (`zinc-N`→`ink-N` at the same shade number) plus a `rounded-2xl`→`rounded-3xl` bump on genuine card containers.
+- *Tier 2 (dashboard/summary surfaces only)* — flat pastel accent color-blocking: Home's balance hero + "Your day" task/habit/quick-action tiles (`src/components/home/`), and Money's balance hero + account strip (purple) and `BudgetCard`/`SavingsGoalsCard`/`DebtsCard` (orange/purple/pink respectively). These compute a small local palette (`cardBg`/`cardBorder`/`accentText`/`primaryText`/`mutedText`) from `theme.ts` per `isDark`, since the color itself (not just light/dark) has to flip between a pastel tint and a saturated "deep" fill.
+- *Tier 3 (stays neutral, deliberately not color-blocked)* — Settings, all manager-modal forms, Productivity's dense lists, Documents, Global Search, and Money's `TransactionList`/`FinanceAnalyticsView` (dense data views, not summary surfaces). Tier 1 only.
+
+**Bottom nav** (`App.tsx` + `TabBarButton.tsx`) is a floating dark pill, absolutely positioned above the safe-area inset — always dark background regardless of app theme (matches the reference, which keeps its nav bar black even in light mode), so `TabBarButton`'s active-tab highlight circle only ever needs to contrast against that one background, not flip across both themes. Screens reserve `paddingBottom: insets.bottom + 76` in `App.tsx`'s content wrapper so nothing sits behind the floating pill.
+
 ## Feature inventory
 
 - **Home** — greeting, balance hero card, today's tasks, daily habits, recent transactions, upcoming bills (only shows if any recurring rule has a reminder due soon).
@@ -76,6 +89,7 @@ Reused conventions worth matching before inventing something new:
 - **A flex item with `align-self: stretch` clamped by `max-width` doesn't get re-centered** — it stays anchored to the start edge, leaving dead space on the other side. This is why `ui/Modal.tsx` computes an explicit numeric width via `useWindowDimensions()` instead of `w-full`/`max-w-*`/`self-stretch` classes.
 - **expo-file-system's API is class-based now** (`File`, `Directory`, `Paths` from `'expo-file-system'`) — the old `FileSystem.writeAsStringAsync`/`readAsStringAsync`/`documentDirectory` functions are legacy (`'expo-file-system/legacy'`) and will throw if called from the main import. `File.copy()`/`.move()` are async, `.exists`/`.size` are sync getters.
 - **`expo-audio` (not `expo-av`, which is fully removed as of SDK 55)** for sound playback; `createAudioPlayer()` for imperative use outside a component (e.g. inside a plain service class), `useAudioPlayer()` hook otherwise.
+- **`npx tsc --noEmit` can intermittently crash with `RangeError: Maximum call stack size exceeded`** on this machine's Node 24 (default V8 stack size), unrelated to any actual type error — it's happened after the project grew larger, not tied to any specific file. If it happens, don't chase it as a real bug: rerun via `node --stack-size=8000 ./node_modules/typescript/lib/tsc.js --noEmit` (note: `NODE_OPTIONS=--stack-size=...` does NOT work here — it breaks `npx`'s own Node install lookup — call `tsc.js` directly with `node --stack-size=...` instead).
 
 ## Build & run
 

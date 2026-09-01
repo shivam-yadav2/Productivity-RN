@@ -129,7 +129,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         />
 
         <View className="flex flex-col gap-1.5">
-          <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Description</Text>
+          <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">Description</Text>
           <TextInput
             multiline
             numberOfLines={3}
@@ -137,7 +137,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             placeholderTextColor="#9ca3af"
             value={description}
             onChangeText={setDescription}
-            className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+            className="w-full px-3 py-2 text-xs rounded-xl bg-ink-50 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 text-ink-900 dark:text-ink-100"
             style={{ textAlignVertical: 'top', minHeight: 72 }}
           />
         </View>
@@ -162,7 +162,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
         {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
-        <View className="flex-row items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+        <View className="flex-row items-center justify-between pt-3 border-t border-ink-100 dark:border-ink-800">
           {task ? (
             <View className="flex-row items-center gap-2">
               <Pressable
@@ -181,7 +181,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     onStartFocus(task);
                   }}
                 >
-                  <Play size={14} color={isDark ? '#f4f4f5' : '#18181b'} />
+                  <Play size={14} color={isDark ? '#EDEAE4' : '#18161D'} />
                   <Text className={cn('text-sm font-medium ml-1', buttonTextColor.secondary)}>Focus</Text>
                 </Button>
               )}

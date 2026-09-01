@@ -32,7 +32,7 @@ export const FinanceAnalyticsView: React.FC = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="p-1 bg-[#F0F0EE] dark:bg-[#252523] rounded-md border border-[#E5E5E2] dark:border-[#333330]"
+        className="p-1 bg-ink-100 dark:bg-ink-800 rounded-md border border-ink-200 dark:border-ink-700"
       >
         <View className="flex-row items-center gap-1">
           {PERIODS.map((item) => (
@@ -41,13 +41,13 @@ export const FinanceAnalyticsView: React.FC = () => {
               onPress={() => setPeriod(item.key)}
               className={cn(
                 'px-3 py-1 rounded',
-                period === item.key && 'bg-white dark:bg-[#1A1A19]'
+                period === item.key && 'bg-surface dark:bg-surface-dark'
               )}
             >
               <Text
                 className={cn(
                   'text-xs font-semibold',
-                  period === item.key ? 'text-[#1A1A1A] dark:text-[#EDEDEB]' : 'text-[#71716E]'
+                  period === item.key ? 'text-ink-900 dark:text-ink-100' : 'text-ink-500'
                 )}
               >
                 {item.label}
@@ -62,16 +62,16 @@ export const FinanceAnalyticsView: React.FC = () => {
       {/* Hero Financial Summary Cards */}
       <View className="flex-row gap-3">
         {/* Income Card */}
-        <View className="flex-1 p-4 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex-col gap-1">
-          <Text className="text-[10px] uppercase tracking-wider font-bold text-[#71716E]">Total Income</Text>
+        <View className="flex-1 p-4 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg flex-col gap-1">
+          <Text className="text-[10px] uppercase tracking-wider font-bold text-ink-500">Total Income</Text>
           <Text className="text-xl font-light text-emerald-600 dark:text-emerald-400">
             {formatCurrency(analytics.totalIncomeMinor, currency)}
           </Text>
         </View>
 
         {/* Expenses Card */}
-        <View className="flex-1 p-4 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex-col gap-1">
-          <Text className="text-[10px] uppercase tracking-wider font-bold text-[#71716E]">Total Expenses</Text>
+        <View className="flex-1 p-4 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg flex-col gap-1">
+          <Text className="text-[10px] uppercase tracking-wider font-bold text-ink-500">Total Expenses</Text>
           <Text className="text-xl font-light text-orange-600 dark:text-orange-400">
             {formatCurrency(analytics.totalExpenseMinor, currency)}
           </Text>
@@ -79,17 +79,17 @@ export const FinanceAnalyticsView: React.FC = () => {
       </View>
 
       {/* Net Savings & Metrics */}
-      <View className="flex-col gap-3 p-5 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg">
-        <View className="flex-row items-center justify-between border-b border-[#F0F0EE] dark:border-[#2C2C29] pb-3">
+      <View className="flex-col gap-3 p-5 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg">
+        <View className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800 pb-3">
           <View className="flex-col">
-            <Text className="text-xs font-bold uppercase tracking-wider text-[#71716E] dark:text-[#999996]">
+            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Net Savings
             </Text>
             <Text
               className={cn(
                 'text-2xl font-light mt-0.5',
                 analytics.netSavingsMinor >= 0
-                  ? 'text-[#1A1A1A] dark:text-[#EDEDEB]'
+                  ? 'text-ink-900 dark:text-ink-100'
                   : 'text-rose-600 dark:text-rose-400'
               )}
             >
@@ -99,10 +99,10 @@ export const FinanceAnalyticsView: React.FC = () => {
           </View>
 
           <View className="flex-col items-end">
-            <Text className="text-xs font-bold uppercase tracking-wider text-[#71716E] dark:text-[#999996]">
+            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Savings Rate
             </Text>
-            <Text className="text-2xl font-light text-[#1A1A1A] dark:text-[#EDEDEB] mt-0.5">
+            <Text className="text-2xl font-light text-ink-900 dark:text-ink-100 mt-0.5">
               {analytics.savingsRatePercentage}%
             </Text>
           </View>
@@ -110,16 +110,16 @@ export const FinanceAnalyticsView: React.FC = () => {
 
         {/* Secondary metric pills */}
         <View className="flex-row gap-2 pt-1">
-          <View className="flex-1 p-3 bg-[#F9F9F8] dark:bg-[#252523] border border-[#E5E5E2] dark:border-[#333330] rounded-md flex-col gap-0.5">
-            <Text className="text-[10px] text-[#71716E] font-medium uppercase tracking-wider">Avg Daily Spend</Text>
-            <Text className="font-medium text-[#1A1A1A] dark:text-[#EDEDEB] text-xs">
+          <View className="flex-1 p-3 bg-ink-50 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-md flex-col gap-0.5">
+            <Text className="text-[10px] text-ink-500 font-medium uppercase tracking-wider">Avg Daily Spend</Text>
+            <Text className="font-medium text-ink-900 dark:text-ink-100 text-xs">
               {formatCurrency(analytics.avgDailyExpenseMinor, currency)}
             </Text>
           </View>
 
-          <View className="flex-1 p-3 bg-[#F9F9F8] dark:bg-[#252523] border border-[#E5E5E2] dark:border-[#333330] rounded-md flex-col gap-0.5">
-            <Text className="text-[10px] text-[#71716E] font-medium uppercase tracking-wider">Largest Expense</Text>
-            <Text numberOfLines={1} className="font-medium text-[#1A1A1A] dark:text-[#EDEDEB] text-xs">
+          <View className="flex-1 p-3 bg-ink-50 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-md flex-col gap-0.5">
+            <Text className="text-[10px] text-ink-500 font-medium uppercase tracking-wider">Largest Expense</Text>
+            <Text numberOfLines={1} className="font-medium text-ink-900 dark:text-ink-100 text-xs">
               {analytics.largestTransaction
                 ? formatCurrency(analytics.largestTransaction.amountMinor, currency)
                 : 'None'}
@@ -129,16 +129,16 @@ export const FinanceAnalyticsView: React.FC = () => {
       </View>
 
       {/* Spending By Category */}
-      <View className="flex-col gap-3 p-5 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg">
+      <View className="flex-col gap-3 p-5 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg">
         <View className="flex-row items-center justify-between">
-          <Text className="text-xs font-bold uppercase tracking-wider text-[#71716E] dark:text-[#999996]">
+          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
             Spending by Category
           </Text>
-          <Text className="text-xs text-[#71716E]">{analytics.categoryBreakdown.length} Categories</Text>
+          <Text className="text-xs text-ink-500">{analytics.categoryBreakdown.length} Categories</Text>
         </View>
 
         {analytics.categoryBreakdown.length === 0 ? (
-          <Text className="text-xs text-[#71716E] py-3 text-center">No expense data in this period.</Text>
+          <Text className="text-xs text-ink-500 py-3 text-center">No expense data in this period.</Text>
         ) : (
           <View className="flex-col gap-3">
             {analytics.categoryBreakdown.map((cat, idx) => (
@@ -151,14 +151,14 @@ export const FinanceAnalyticsView: React.FC = () => {
                     >
                       <IconHelper name={cat.categoryIcon} size={12} color="#ffffff" />
                     </View>
-                    <Text numberOfLines={1} className="text-xs font-medium text-[#1A1A1A] dark:text-[#EDEDEB]">
+                    <Text numberOfLines={1} className="text-xs font-medium text-ink-900 dark:text-ink-100">
                       {cat.categoryName}
                     </Text>
                   </View>
 
                   <View className="flex-row items-center gap-2 shrink-0">
-                    <Text className="text-[#71716E] text-[11px]">{cat.percentage}%</Text>
-                    <Text className="text-xs font-medium text-[#1A1A1A] dark:text-[#EDEDEB]">
+                    <Text className="text-ink-500 text-[11px]">{cat.percentage}%</Text>
+                    <Text className="text-xs font-medium text-ink-900 dark:text-ink-100">
                       {formatCurrency(cat.totalMinor, currency)}
                     </Text>
                   </View>
@@ -168,7 +168,7 @@ export const FinanceAnalyticsView: React.FC = () => {
                 <AnimatedBar
                   percent={Math.max(3, cat.percentage)}
                   delay={idx * 45}
-                  trackClassName="h-1 bg-[#F0F0EE] dark:bg-[#333330] rounded-full"
+                  trackClassName="h-1 bg-ink-100 dark:bg-ink-700 rounded-full"
                   fillColor={cat.categoryColor}
                 />
               </View>
@@ -179,15 +179,15 @@ export const FinanceAnalyticsView: React.FC = () => {
 
       {/* Spending By Account */}
       {analytics.accountBreakdown.length > 0 && (
-        <View className="flex-col gap-3 p-5 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg">
-          <Text className="text-xs font-bold uppercase tracking-wider text-[#71716E] dark:text-[#999996]">
+        <View className="flex-col gap-3 p-5 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg">
+          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
             Spending by Account
           </Text>
           <View className="flex-col gap-2">
             {analytics.accountBreakdown.map((acc) => (
               <View
                 key={acc.accountId}
-                className="flex-row items-center justify-between p-2.5 rounded-md bg-[#F9F9F8] dark:bg-[#252523] border border-[#E5E5E2] dark:border-[#333330]"
+                className="flex-row items-center justify-between p-2.5 rounded-md bg-ink-50 dark:bg-ink-800 border border-ink-200 dark:border-ink-700"
               >
                 <View className="flex-row items-center gap-2 flex-1 min-w-0 pr-2">
                   <View
@@ -196,13 +196,13 @@ export const FinanceAnalyticsView: React.FC = () => {
                   >
                     <IconHelper name={acc.accountIcon} size={13} color="#ffffff" />
                   </View>
-                  <Text numberOfLines={1} className="text-xs font-medium text-[#1A1A1A] dark:text-[#EDEDEB]">
+                  <Text numberOfLines={1} className="text-xs font-medium text-ink-900 dark:text-ink-100">
                     {acc.accountName}
                   </Text>
                 </View>
                 <View className="flex-row items-center gap-2 shrink-0">
-                  <Text className="text-[11px] text-[#71716E]">{acc.percentage}%</Text>
-                  <Text className="text-xs font-medium text-[#1A1A1A] dark:text-[#EDEDEB]">
+                  <Text className="text-[11px] text-ink-500">{acc.percentage}%</Text>
+                  <Text className="text-xs font-medium text-ink-900 dark:text-ink-100">
                     {formatCurrency(acc.totalMinor, currency)}
                   </Text>
                 </View>

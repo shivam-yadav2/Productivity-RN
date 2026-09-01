@@ -35,31 +35,31 @@ export const FocusAnalytics: React.FC = () => {
   return (
     <View className="flex flex-col gap-3">
       <View className="flex-row gap-3">
-        <View className="flex-1 p-4 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex flex-col gap-1">
-          <Text className="text-[10px] uppercase tracking-wider font-bold text-[#71716E] dark:text-[#999996]">
+        <View className="flex-1 p-4 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg flex flex-col gap-1">
+          <Text className="text-[10px] uppercase tracking-wider font-bold text-ink-500 dark:text-ink-400">
             Today's Focus
           </Text>
-          <Text className="text-2xl font-light tracking-tight text-[#1A1A1A] dark:text-[#F3F3F1]">
-            {todayFocusMinutes} <Text className="text-xs font-normal text-[#71716E]">mins</Text>
+          <Text className="text-2xl font-light tracking-tight text-ink-900 dark:text-ink-100">
+            {todayFocusMinutes} <Text className="text-xs font-normal text-ink-500">mins</Text>
           </Text>
         </View>
 
-        <View className="flex-1 p-4 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex flex-col gap-1">
-          <Text className="text-[10px] uppercase tracking-wider font-bold text-[#71716E] dark:text-[#999996]">
+        <View className="flex-1 p-4 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg flex flex-col gap-1">
+          <Text className="text-[10px] uppercase tracking-wider font-bold text-ink-500 dark:text-ink-400">
             Total Completed
           </Text>
-          <Text className="text-2xl font-light tracking-tight text-[#1A1A1A] dark:text-[#F3F3F1]">
-            {totalCompletedSessions} <Text className="text-xs font-normal text-[#71716E]">sessions</Text>
+          <Text className="text-2xl font-light tracking-tight text-ink-900 dark:text-ink-100">
+            {totalCompletedSessions} <Text className="text-xs font-normal text-ink-500">sessions</Text>
           </Text>
         </View>
       </View>
 
-      <View className="p-5 bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-lg flex flex-col gap-3">
+      <View className="p-5 bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-lg flex flex-col gap-3">
         <View className="flex-row items-center justify-between">
-          <Text className="text-xs font-bold uppercase tracking-wider text-[#71716E] dark:text-[#999996]">
+          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
             7-Day Focus Trend
           </Text>
-          <Text className="text-[11px] font-medium text-[#71716E]">{totalFocusMinutes}m Total</Text>
+          <Text className="text-[11px] font-medium text-ink-500">{totalFocusMinutes}m Total</Text>
         </View>
 
         <View className="flex-row items-end justify-between gap-2 h-24 pt-4">
@@ -70,18 +70,18 @@ export const FocusAnalytics: React.FC = () => {
 
             return (
               <View key={d} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                <Text className="text-[10px] font-mono text-[#71716E]">{mins > 0 ? `${mins}m` : ''}</Text>
-                <View className="w-full max-w-[18px] bg-[#F0F0EE] dark:bg-[#252523] rounded-t-sm overflow-hidden h-full justify-end">
+                <Text className="text-[10px] font-mono text-ink-500">{mins > 0 ? `${mins}m` : ''}</Text>
+                <View className="w-full max-w-[18px] bg-ink-100 dark:bg-ink-800 rounded-t-sm overflow-hidden h-full justify-end">
                   <View
-                    className={isToday ? 'w-full rounded-t-sm bg-[#1A1A1A] dark:bg-[#EDEDEB]' : 'w-full rounded-t-sm bg-[#71716E] dark:bg-[#4A4A47]'}
+                    className={isToday ? 'w-full rounded-t-sm bg-ink-900 dark:bg-ink-100' : 'w-full rounded-t-sm bg-ink-500 dark:bg-ink-700'}
                     style={{ height: `${heightPercent}%` }}
                   />
                 </View>
                 <Text
                   className={
                     isToday
-                      ? 'text-[10px] font-bold tracking-wider text-[#1A1A1A] dark:text-[#F3F3F1]'
-                      : 'text-[10px] font-semibold tracking-wider text-[#71716E]'
+                      ? 'text-[10px] font-bold tracking-wider text-ink-900 dark:text-ink-100'
+                      : 'text-[10px] font-semibold tracking-wider text-ink-500'
                   }
                 >
                   {formatShortDay(d)}

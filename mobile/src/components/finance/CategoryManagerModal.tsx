@@ -33,7 +33,7 @@ const CATEGORY_COLORS = [
 export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOpen, onClose }) => {
   const { db } = useDatabase();
   const { resolvedTheme } = useTheme();
-  const selectedAccentColor = resolvedTheme === 'dark' ? '#18181b' : '#ffffff';
+  const selectedAccentColor = resolvedTheme === 'dark' ? '#18161D' : '#ffffff';
   const [activeTab, setActiveTab] = useState<CategoryType>('EXPENSE');
   const [isCreating, setIsCreating] = useState(false);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
@@ -121,7 +121,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
 
           {/* Color & Icon Picker */}
           <View className="flex-col gap-1.5">
-            <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Color & Icon</Text>
+            <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">Color & Icon</Text>
             <View className="flex-row items-center gap-2 flex-wrap mb-2">
               {CATEGORY_COLORS.map((c) => (
                 <Pressable
@@ -136,7 +136,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
             </View>
 
             <View
-              className="flex-row flex-wrap gap-1.5 p-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700"
+              className="flex-row flex-wrap gap-1.5 p-1 bg-ink-50 dark:bg-ink-800/50 rounded-xl border border-ink-200 dark:border-ink-700"
               style={{ maxHeight: 176 }}
             >
               {CATEGORY_ICONS.map((ic) => (
@@ -145,11 +145,11 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
                   onPress={() => setIcon(ic)}
                   className={cn(
                     'p-2 rounded-lg items-center justify-center',
-                    icon === ic ? 'bg-zinc-900 dark:bg-zinc-100' : 'active:bg-zinc-200/60 dark:active:bg-zinc-700/60'
+                    icon === ic ? 'bg-ink-900 dark:bg-ink-100' : 'active:bg-ink-200/60 dark:active:bg-ink-700/60'
                   )}
                   style={{ width: '15%' }}
                 >
-                  <IconHelper name={ic} size={18} color={icon === ic ? selectedAccentColor : '#71717a'} />
+                  <IconHelper name={ic} size={18} color={icon === ic ? selectedAccentColor : '#8A8680'} />
                 </Pressable>
               ))}
             </View>
@@ -157,7 +157,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
 
           {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
-          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
             <Button variant="ghost" onPress={() => setIsCreating(false)}>
               <Text className={buttonTextColor.ghost}>Back</Text>
             </Button>
@@ -169,18 +169,18 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
       ) : (
         <View className="flex-col gap-3">
           {/* Tab Selector */}
-          <View className="flex-row items-center p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
+          <View className="flex-row items-center p-1 bg-ink-100 dark:bg-ink-800/80 rounded-xl">
             <Pressable
               onPress={() => setActiveTab('EXPENSE')}
               className={cn(
                 'flex-1 py-1.5 rounded-lg items-center',
-                activeTab === 'EXPENSE' && 'bg-white dark:bg-zinc-900'
+                activeTab === 'EXPENSE' && 'bg-white dark:bg-ink-900'
               )}
             >
               <Text
                 className={cn(
                   'text-xs font-semibold',
-                  activeTab === 'EXPENSE' ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'
+                  activeTab === 'EXPENSE' ? 'text-ink-900 dark:text-ink-100' : 'text-ink-500'
                 )}
               >
                 Expense Categories
@@ -190,13 +190,13 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
               onPress={() => setActiveTab('INCOME')}
               className={cn(
                 'flex-1 py-1.5 rounded-lg items-center',
-                activeTab === 'INCOME' && 'bg-white dark:bg-zinc-900'
+                activeTab === 'INCOME' && 'bg-white dark:bg-ink-900'
               )}
             >
               <Text
                 className={cn(
                   'text-xs font-semibold',
-                  activeTab === 'INCOME' ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'
+                  activeTab === 'INCOME' ? 'text-ink-900 dark:text-ink-100' : 'text-ink-500'
                 )}
               >
                 Income Categories
@@ -205,7 +205,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
           </View>
 
           <View className="flex-row items-center justify-between mt-1">
-            <Text className="text-xs text-zinc-500 font-medium">{categories.length} Categories</Text>
+            <Text className="text-xs text-ink-500 font-medium">{categories.length} Categories</Text>
             <Button size="sm" onPress={handleStartCreate}>
               <Plus size={16} color="#ffffff" />
               <Text className={buttonTextColor.primary}>Add Category</Text>
@@ -217,7 +217,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
               {categories.map((cat) => (
                 <View
                   key={cat.id}
-                  className="flex-row items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800"
+                  className="flex-row items-center justify-between p-2.5 rounded-xl bg-ink-50 dark:bg-ink-800/40 border border-ink-200/70 dark:border-ink-800"
                 >
                   <View className="flex-row items-center gap-2.5 flex-1 min-w-0 pr-2">
                     <View
@@ -227,7 +227,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
                       <IconHelper name={cat.icon} size={16} color="#ffffff" />
                     </View>
                     <View className="flex-col min-w-0">
-                      <Text numberOfLines={1} className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      <Text numberOfLines={1} className="text-xs font-semibold text-ink-900 dark:text-ink-100">
                         {cat.name}
                       </Text>
                       {cat.isArchived && (
@@ -237,11 +237,11 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
                   </View>
 
                   <View className="flex-row items-center gap-1 shrink-0">
-                    <Pressable onPress={() => handleStartEdit(cat)} className="p-1 rounded active:bg-zinc-200/60 dark:active:bg-zinc-700/60">
-                      <Edit2 size={14} color="#a1a1aa" />
+                    <Pressable onPress={() => handleStartEdit(cat)} className="p-1 rounded active:bg-ink-200/60 dark:active:bg-ink-700/60">
+                      <Edit2 size={14} color="#A79D8C" />
                     </Pressable>
-                    <Pressable onPress={() => handleToggleArchive(cat)} className="p-1 rounded active:bg-zinc-200/60 dark:active:bg-zinc-700/60">
-                      <Archive size={14} color={cat.isArchived ? '#16a34a' : '#a1a1aa'} />
+                    <Pressable onPress={() => handleToggleArchive(cat)} className="p-1 rounded active:bg-ink-200/60 dark:active:bg-ink-700/60">
+                      <Archive size={14} color={cat.isArchived ? '#16a34a' : '#A79D8C'} />
                     </Pressable>
                   </View>
                 </View>

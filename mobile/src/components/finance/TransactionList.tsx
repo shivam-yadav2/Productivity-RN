@@ -8,6 +8,7 @@ import { formatDateDisplay } from '../../utils/date';
 import { Search, Filter, Plus, SlidersHorizontal, X } from 'lucide-react-native';
 import { Select } from '../ui/Select';
 import { cn } from '../../utils/cn';
+import { ink } from '../../utils/theme';
 
 interface TransactionListProps {
   onSelectTransaction: (tx: Transaction) => void;
@@ -92,18 +93,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         <View className="flex-row items-center gap-2">
           <View className="flex-1 relative justify-center">
             <View className="absolute left-3 z-10">
-              <Search size={16} color="#71716E" />
+              <Search size={16} color={ink[500]} />
             </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Search transactions..."
-              placeholderTextColor="#71716E"
-              className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-[#1A1A19] border border-[#E5E5E2] dark:border-[#2C2C29] rounded-md text-[#1A1A1A] dark:text-[#EDEDEB]"
+              placeholderTextColor={ink[500]}
+              className="w-full pl-9 pr-8 py-2 text-xs bg-surface dark:bg-surface-dark border border-ink-200 dark:border-ink-800 rounded-md text-ink-900 dark:text-ink-100"
             />
             {searchQuery ? (
               <Pressable onPress={() => setSearchQuery('')} className="absolute right-2.5">
-                <X size={14} color="#71716E" />
+                <X size={14} color={ink[500]} />
               </Pressable>
             ) : null}
           </View>
@@ -113,33 +114,33 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             className={cn(
               'p-2.5 rounded-md border flex-row items-center gap-1.5',
               showFilters || hasActiveFilters
-                ? 'bg-[#1A1A1A] border-[#1A1A1A] dark:bg-[#EDEDEB] dark:border-[#EDEDEB]'
-                : 'bg-white dark:bg-[#1A1A19] border-[#E5E5E2] dark:border-[#2C2C29]'
+                ? 'bg-ink-900 border-ink-900 dark:bg-ink-100 dark:border-ink-100'
+                : 'bg-surface dark:bg-surface-dark border-ink-200 dark:border-ink-800'
             )}
           >
-            <SlidersHorizontal size={14} color={showFilters || hasActiveFilters ? '#ffffff' : '#71716E'} />
+            <SlidersHorizontal size={14} color={showFilters || hasActiveFilters ? '#ffffff' : ink[500]} />
           </Pressable>
         </View>
 
         {/* Filter Drawer */}
         {showFilters && (
-          <View className="p-3 bg-[#F9F9F8] dark:bg-[#252523] rounded-md border border-[#E5E5E2] dark:border-[#333330] flex-col gap-2.5">
+          <View className="p-3 bg-ink-50 dark:bg-ink-800 rounded-md border border-ink-200 dark:border-ink-700 flex-col gap-2.5">
             {/* Type selector */}
             <View className="flex-row items-center gap-1.5 flex-wrap">
-              <Text className="text-[#71716E] font-medium mr-1 text-[11px]">Type:</Text>
+              <Text className="text-ink-500 font-medium mr-1 text-[11px]">Type:</Text>
               {(['ALL', 'EXPENSE', 'INCOME', 'TRANSFER'] as const).map((type) => (
                 <Pressable
                   key={type}
                   onPress={() => setSelectedType(type)}
                   className={cn(
                     'px-2 py-1 rounded',
-                    selectedType === type ? 'bg-[#1A1A1A] dark:bg-[#EDEDEB]' : 'bg-[#E5E5E2] dark:bg-[#333330]'
+                    selectedType === type ? 'bg-ink-900 dark:bg-ink-100' : 'bg-ink-200 dark:bg-ink-700'
                   )}
                 >
                   <Text
                     className={cn(
                       'text-[11px] font-medium',
-                      selectedType === type ? 'text-white dark:text-[#1A1A1A]' : 'text-[#71716E] dark:text-[#A8A8A4]'
+                      selectedType === type ? 'text-white dark:text-ink-900' : 'text-ink-500 dark:text-ink-400'
                     )}
                   >
                     {type === 'ALL' ? 'All' : type}
@@ -181,14 +182,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
       {/* Transaction Feed */}
       {displayedTransactions.length === 0 ? (
-        <View className="py-12 px-4 items-center justify-center bg-white dark:bg-[#1A1A19] rounded-lg border border-[#E5E5E2] dark:border-[#2C2C29]">
-          <View className="w-10 h-10 rounded-md bg-[#F0F0EE] dark:bg-[#252523] items-center justify-center mb-3">
-            <Filter size={20} color="#71716E" />
+        <View className="py-12 px-4 items-center justify-center bg-surface dark:bg-surface-dark rounded-lg border border-ink-200 dark:border-ink-800">
+          <View className="w-10 h-10 rounded-md bg-ink-100 dark:bg-ink-800 items-center justify-center mb-3">
+            <Filter size={20} color={ink[500]} />
           </View>
-          <Text className="text-xs font-semibold text-[#1A1A1A] dark:text-[#EDEDEB]">
+          <Text className="text-xs font-semibold text-ink-900 dark:text-ink-100">
             {hasActiveFilters ? 'No matching transactions' : 'No transactions yet'}
           </Text>
-          <Text className="text-[11px] text-[#71716E] text-center max-w-xs mt-1">
+          <Text className="text-[11px] text-ink-500 text-center max-w-xs mt-1">
             {hasActiveFilters
               ? 'Try resetting the filters or modifying your search query.'
               : 'Start tracking your spending and personal income today.'}
@@ -197,16 +198,16 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             <View className="flex-row items-center gap-2 mt-4">
               <Pressable
                 onPress={onOpenAddExpense}
-                className="px-3 py-1.5 bg-[#1A1A1A] dark:bg-[#EDEDEB] rounded-md flex-row items-center gap-1"
+                className="px-3 py-1.5 bg-ink-900 dark:bg-ink-100 rounded-md flex-row items-center gap-1"
               >
                 <Plus size={14} color="#ffffff" />
-                <Text className="text-xs font-semibold text-white dark:text-[#1A1A1A]">Add Expense</Text>
+                <Text className="text-xs font-semibold text-white dark:text-ink-900">Add Expense</Text>
               </Pressable>
               <Pressable
                 onPress={onOpenAddIncome}
-                className="px-3 py-1.5 border border-[#E5E5E2] dark:border-[#333330] rounded-md"
+                className="px-3 py-1.5 border border-ink-200 dark:border-ink-700 rounded-md"
               >
-                <Text className="text-xs font-semibold text-[#1A1A1A] dark:text-[#EDEDEB]">Add Income</Text>
+                <Text className="text-xs font-semibold text-ink-900 dark:text-ink-100">Add Income</Text>
               </Pressable>
             </View>
           )}
@@ -215,14 +216,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         <View className="flex-col gap-3">
           {groupedTransactions.map((group) => (
             <View key={group.date} className="flex-col gap-1">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-[#71716E] px-1">
+              <Text className="text-[10px] font-bold uppercase tracking-wider text-ink-500 px-1">
                 {group.displayDate}
               </Text>
-              <View className="bg-white dark:bg-[#1A1A19] rounded-lg border border-[#E5E5E2] dark:border-[#2C2C29] overflow-hidden">
+              <View className="bg-surface dark:bg-surface-dark rounded-lg border border-ink-200 dark:border-ink-800 overflow-hidden">
                 {group.items.map((tx, i) => (
                   <View
                     key={tx.id}
-                    className={i > 0 ? 'border-t border-[#F0F0EE] dark:border-[#2C2C29]' : ''}
+                    className={i > 0 ? 'border-t border-ink-100 dark:border-ink-800' : ''}
                   >
                     <TransactionItem transaction={tx} index={i} onPress={() => onSelectTransaction(tx)} />
                   </View>

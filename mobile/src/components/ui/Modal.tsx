@@ -160,27 +160,27 @@ export const Modal: React.FC<ModalProps> = ({
   if (!mounted) return null;
 
   const header = (
-    <View className="px-5 pt-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+    <View className="px-5 pt-3 pb-3 border-b border-ink-100 dark:border-ink-800">
       {isSmallScreen && (
         <View className="items-center pb-2.5">
-          <View className="h-1 w-9 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+          <View className="h-1 w-9 rounded-full bg-ink-300 dark:bg-ink-700" />
         </View>
       )}
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-3">
           {title && (
-            <Text className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</Text>
+            <Text className="text-base font-semibold text-ink-900 dark:text-ink-100">{title}</Text>
           )}
           {description && (
-            <Text className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{description}</Text>
+            <Text className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">{description}</Text>
           )}
         </View>
         <Pressable
           onPress={requestClose}
-          className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg"
+          className="p-1.5 active:bg-ink-100 dark:active:bg-ink-800 rounded-lg"
           accessibilityLabel="Close dialog"
         >
-          <X size={20} color="#a1a1aa" />
+          <X size={20} color="#A79D8C" />
         </Pressable>
       </View>
     </View>
@@ -211,7 +211,7 @@ export const Modal: React.FC<ModalProps> = ({
               marginBottom: isSmallScreen ? keyboardHeight : 0,
               overflow: 'hidden',
               zIndex: 10,
-              backgroundColor: isDark ? '#18181b' : '#ffffff',
+              backgroundColor: isDark ? '#18161D' : '#ffffff',
               borderColor: isDark ? '#27272a' : '#e4e4e7',
               ...(isSmallScreen
                 ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopLeftRadius: 24, borderTopRightRadius: 24 }

@@ -1,9 +1,15 @@
 import './global.css';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+import {
+  useFonts,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Wallet, CheckSquare, FolderOpen, Settings, Lock, Moon, Sun, Search } from 'lucide-react-native';
 import { DatabaseProvider, useDatabase } from './src/context/DatabaseContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -32,6 +38,7 @@ import { HabitFormModal } from './src/components/productivity/HabitFormModal';
 import { NoteEditorModal } from './src/components/productivity/NoteEditorModal';
 import { GlobalSearchOverlay } from './src/components/search/GlobalSearchOverlay';
 import { noteRepository } from './src/database/repositories/noteRepo';
+import { ink, inkMuted } from './src/utils/theme';
 
 import { Transaction, Task, Habit, Note } from './src/types';
 import { cn } from './src/utils/cn';
@@ -39,12 +46,18 @@ import { audioService } from './src/services/audioService';
 import { shareDocument } from './src/services/documentStorage';
 import { SearchResult } from './src/services/searchService';
 
+// Keep the splash screen up until Plus Jakarta Sans has loaded — otherwise headline
+// text renders in the system fallback for one frame, then jumps to the real font.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 type TabType = 'HOME' | 'MONEY' | 'PRODUCTIVITY' | 'DOCUMENTS' | 'SETTINGS';
 
 function MainApp() {
   useDatabase();
   const { theme, resolvedTheme, toggleTheme } = useTheme();
   const { isLocked, hasPin, lockApp } = useSecurity();
+  const insets = useSafeAreaInsets();
+  const isDark = resolvedTheme === 'dark';
 
   const [activeTab, setActiveTab] = useState<TabType>('HOME');
   // Screens mount once on first visit and then stay mounted (just hidden), instead of being
@@ -146,24 +159,24 @@ function MainApp() {
   ];
 
   return (
-    <View className="flex-1 bg-zinc-100 dark:bg-zinc-950">
+    <View className="flex-1 bg-ink-50 dark:bg-ink-950">
       <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       {/* Top Application Bar */}
-      <SafeAreaView edges={['top']} className="bg-white/95 dark:bg-zinc-900/95 border-b border-zinc-200/80 dark:border-zinc-800/80">
+      <SafeAreaView edges={['top']} className="bg-surface/95 dark:bg-surface-dark/95 border-b border-ink-100/80 dark:border-ink-800/80">
         <View className="flex-row items-center justify-between px-4 py-2.5">
           <View className="flex-row items-center gap-2">
-            <View className="w-7 h-7 rounded-xl bg-zinc-900 dark:bg-zinc-100 items-center justify-center">
+            <View className="w-7 h-7 rounded-xl bg-ink-900 dark:bg-ink-100 items-center justify-center">
               <Logo
                 size={16}
-                color={resolvedTheme === 'dark' ? '#18181B' : '#FFFFFF'}
-                backdropColor={resolvedTheme === 'dark' ? '#F4F4F5' : '#18181B'}
+                color={resolvedTheme === 'dark' ? '#18161D' : '#FFFFFF'}
+                backdropColor={resolvedTheme === 'dark' ? '#EDEAE4' : '#18161D'}
               />
             </View>
             <View className="flex flex-col">
-              <Text className="text-xs font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Personal</Text>
+              <Text className="text-xs font-bold tracking-tight text-ink-900 dark:text-ink-100">Personal</Text>
               <View className="flex-row items-center gap-1">
                 <View className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <Text className="text-[10px] text-zinc-400">100% Offline</Text>
+                <Text className="text-[10px] text-ink-400">100% Offline</Text>
               </View>
             </View>
           </View>
@@ -171,18 +184,18 @@ function MainApp() {
           <View className="flex-row items-center gap-1.5">
             <Pressable
               onPress={() => setIsSearchOpen(true)}
-              className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg"
+              className="p-1.5 active:bg-ink-100 dark:active:bg-ink-800 rounded-lg"
             >
-              <Search size={16} color="#71717a" />
+              <Search size={16} color={inkMuted(isDark)} />
             </Pressable>
 
             {hasPin && (
-              <Pressable onPress={lockApp} className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg">
-                <Lock size={16} color="#71717a" />
+              <Pressable onPress={lockApp} className="p-1.5 active:bg-ink-100 dark:active:bg-ink-800 rounded-lg">
+                <Lock size={16} color={inkMuted(isDark)} />
               </Pressable>
             )}
 
-            <Pressable onPress={toggleTheme} className="p-1.5 active:bg-zinc-100 dark:active:bg-zinc-800 rounded-lg">
+            <Pressable onPress={toggleTheme} className="p-1.5 active:bg-ink-100 dark:active:bg-ink-800 rounded-lg">
               {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#6366f1" />}
             </Pressable>
           </View>
@@ -190,7 +203,7 @@ function MainApp() {
       </SafeAreaView>
 
       {/* Main View Area */}
-      <View className="flex-1 px-4 pt-3">
+      <View className="flex-1 px-4 pt-3" style={{ paddingBottom: insets.bottom + 76 }}>
         {mountedTabs.has('HOME') && (
         <View style={{ flex: 1, display: activeTab === 'HOME' ? 'flex' : 'none' }}>
           <HomeScreen
@@ -296,21 +309,37 @@ function MainApp() {
         )}
       </View>
 
-      {/* Bottom Tab Bar */}
-      <SafeAreaView edges={['bottom']} className="bg-white/95 dark:bg-zinc-900/95 border-t border-zinc-200/80 dark:border-zinc-800/80">
-        <View className="flex-row items-center justify-around py-1.5 px-6">
+      {/* Bottom Tab Bar — a floating pill, always dark regardless of app theme, so the
+          active-tab circle only ever needs to contrast against one background. */}
+      <View
+        pointerEvents="box-none"
+        style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, alignItems: 'center' }}
+      >
+        <View
+          className="flex-row items-center justify-around px-3 py-2"
+          style={{
+            gap: 4,
+            borderRadius: 999,
+            backgroundColor: isDark ? '#000000' : ink[900],
+            shadowColor: '#000',
+            shadowOpacity: 0.25,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 12,
+          }}
+        >
           {tabs.map(({ key, label, icon: Icon }) => (
             <TabBarButton
               key={key}
               label={label}
               icon={Icon}
               active={activeTab === key}
-              isDark={resolvedTheme === 'dark'}
+              isDark={isDark}
               onPress={() => handleTabChange(key)}
             />
           ))}
         </View>
-      </SafeAreaView>
+      </View>
 
       {/* Global Modals */}
       <ExpenseFormModal
@@ -416,8 +445,23 @@ function MainApp() {
 }
 
 export default function App() {
+  const [fontsLoaded, fontError] = useFonts({
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded || fontError) {
+      await SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
         <ThemeProvider>
           <DatabaseProvider>

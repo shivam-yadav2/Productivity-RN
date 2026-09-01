@@ -61,17 +61,17 @@ export const DateField: React.FC<DateFieldProps> = ({ mode, value, onChange, lab
 
   return (
     <View className="w-full flex flex-col gap-1.5">
-      {label && <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{label}</Text>}
+      {label && <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">{label}</Text>}
 
       <Pressable
         onPress={() => setShow(true)}
         className={cn(
-          'w-full flex-row items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700/80',
+          'w-full flex-row items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-300 dark:border-ink-700/80',
           className
         )}
       >
-        <Icon size={16} color="#a1a1aa" />
-        <Text className={cn('text-sm', value ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 dark:text-zinc-500')}>
+        <Icon size={16} color="#A79D8C" />
+        <Text className={cn('text-sm', value ? 'text-ink-900 dark:text-ink-100' : 'text-ink-400 dark:text-ink-500')}>
           {formatDisplay(mode, value)}
         </Text>
       </Pressable>

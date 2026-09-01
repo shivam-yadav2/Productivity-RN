@@ -15,6 +15,7 @@ import { Button, buttonTextColor } from '../components/ui/Button';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { FadeSwap } from '../components/ui/FadeSwap';
 import { cn } from '../utils/cn';
+import { ink } from '../utils/theme';
 
 interface ProductivityScreenProps {
   onSelectTask: (task: Task) => void;
@@ -131,8 +132,8 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
       {/* Header */}
       <View className="flex-row items-center justify-between pt-1">
         <View className="flex flex-col">
-          <Text className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Productivity</Text>
-          <Text className="text-xs text-zinc-500">Tasks, daily habits & deep focus timers</Text>
+          <Text className="text-xl font-bold text-ink-900 dark:text-ink-100 tracking-tight">Productivity</Text>
+          <Text className="text-xs text-ink-500">Tasks, daily habits & deep focus timers</Text>
         </View>
 
         {activeTab === 'TASKS' && (
@@ -177,13 +178,13 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
                 onPress={() => setTaskFilter(f.key)}
                 className={cn(
                   'px-3 py-1 rounded-lg',
-                  taskFilter === f.key ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-zinc-100 dark:bg-zinc-800'
+                  taskFilter === f.key ? 'bg-ink-900 dark:bg-ink-100' : 'bg-ink-100 dark:bg-ink-800'
                 )}
               >
                 <Text
                   className={cn(
                     'text-xs font-semibold',
-                    taskFilter === f.key ? 'text-white dark:text-zinc-900' : 'text-zinc-600 dark:text-zinc-400'
+                    taskFilter === f.key ? 'text-white dark:text-ink-900' : 'text-ink-600 dark:text-ink-400'
                   )}
                 >
                   {f.label}
@@ -194,9 +195,9 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
 
           <View className="flex flex-col gap-2">
             {filteredTasks.length === 0 ? (
-              <View className="py-12 items-center justify-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
-                <CheckCircle2 size={32} color="#a1a1aa" />
-                <Text className="text-xs text-zinc-500 mt-2">No tasks in this filter view.</Text>
+              <View className="py-12 items-center justify-center bg-ink-50 dark:bg-ink-800/30 rounded-3xl border border-ink-200/60 dark:border-ink-800">
+                <CheckCircle2 size={32} color={ink[400]} />
+                <Text className="text-xs text-ink-500 mt-2">No tasks in this filter view.</Text>
               </View>
             ) : (
               filteredTasks.map((t, i) => (
@@ -209,15 +210,15 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
 
       {activeTab === 'HABITS' && (
         <View className="flex flex-col gap-3">
-          <Text className="text-xs text-zinc-500">
+          <Text className="text-xs text-ink-500">
             Build consistency with daily habits. Tap once to mark complete for today.
           </Text>
 
           <View className="flex flex-col gap-2.5">
             {habits.length === 0 ? (
-              <View className="py-12 items-center justify-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
-                <Sparkles size={32} color="#a1a1aa" />
-                <Text className="text-xs text-zinc-500 mt-2">No habits created yet.</Text>
+              <View className="py-12 items-center justify-center bg-ink-50 dark:bg-ink-800/30 rounded-3xl border border-ink-200/60 dark:border-ink-800">
+                <Sparkles size={32} color={ink[400]} />
+                <Text className="text-xs text-ink-500 mt-2">No habits created yet.</Text>
                 <Button size="sm" className="mt-3" onPress={onOpenNewHabit}>
                   <Plus size={16} color="#ffffff" />
                   <Text className={cn('text-xs font-medium ml-1', buttonTextColor.primary)}>Add Your First Habit</Text>
@@ -241,27 +242,27 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
         <View className="flex flex-col gap-3">
           <View className="relative justify-center">
             <View className="absolute left-3 z-10">
-              <Search size={16} color="#71716E" />
+              <Search size={16} color={ink[500]} />
             </View>
             <TextInput
               value={noteSearchQuery}
               onChangeText={setNoteSearchQuery}
               placeholder="Search notes..."
-              placeholderTextColor="#71716E"
-              className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-zinc-100"
+              placeholderTextColor={ink[500]}
+              className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 rounded-md text-ink-900 dark:text-ink-100"
             />
             {noteSearchQuery ? (
               <Pressable onPress={() => setNoteSearchQuery('')} className="absolute right-2.5">
-                <X size={14} color="#71716E" />
+                <X size={14} color={ink[500]} />
               </Pressable>
             ) : null}
           </View>
 
           <View className="flex flex-col gap-2">
             {filteredNotes.length === 0 ? (
-              <View className="py-12 items-center justify-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
-                <NotebookPen size={32} color="#a1a1aa" />
-                <Text className="text-xs text-zinc-500 mt-2">
+              <View className="py-12 items-center justify-center bg-ink-50 dark:bg-ink-800/30 rounded-3xl border border-ink-200/60 dark:border-ink-800">
+                <NotebookPen size={32} color={ink[400]} />
+                <Text className="text-xs text-ink-500 mt-2">
                   {noteSearchQuery ? 'No notes match your search.' : 'No notes yet.'}
                 </Text>
                 {!noteSearchQuery && (

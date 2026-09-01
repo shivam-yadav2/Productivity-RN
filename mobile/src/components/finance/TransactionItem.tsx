@@ -68,7 +68,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ tra
 
         {/* Title & Metadata */}
         <View className="flex-col min-w-0 flex-1">
-          <Text numberOfLines={1} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          <Text numberOfLines={1} className="text-sm font-semibold text-ink-900 dark:text-ink-100">
             {isTransfer
               ? `${sourceAccount?.name || 'Account'} → ${destAccount?.name || 'Account'}`
               : category?.name || (isIncome ? 'Income' : 'Expense')}
@@ -76,17 +76,17 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ tra
 
           <View className="flex-row items-center gap-2 mt-0.5">
             {!isTransfer && (
-              <Text numberOfLines={1} className="text-xs text-zinc-500 dark:text-zinc-400">
+              <Text numberOfLines={1} className="text-xs text-ink-500 dark:text-ink-400">
                 {sourceAccount?.name || 'Account'}
               </Text>
             )}
             {transaction.time && (
-              <Text className="text-xs text-zinc-500 dark:text-zinc-400">
+              <Text className="text-xs text-ink-500 dark:text-ink-400">
                 • {formatTimeDisplay(transaction.time)}
               </Text>
             )}
             {transaction.note && (
-              <Text numberOfLines={1} className="text-xs text-zinc-500 dark:text-zinc-400 italic flex-1">
+              <Text numberOfLines={1} className="text-xs text-ink-500 dark:text-ink-400 italic flex-1">
                 "{transaction.note}"
               </Text>
             )}
@@ -100,7 +100,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ tra
           className={cn(
             'text-sm font-semibold tracking-tight',
             isIncome && 'text-emerald-600 dark:text-emerald-400',
-            isExpense && 'text-zinc-900 dark:text-zinc-100',
+            isExpense && 'text-ink-900 dark:text-ink-100',
             isTransfer && 'text-blue-600 dark:text-blue-400'
           )}
         >
@@ -109,8 +109,8 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ tra
         </Text>
 
         {transaction.tags && transaction.tags.length > 0 && (
-          <View className="mt-0.5 px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded">
-            <Text className="text-[10px] text-zinc-600 dark:text-zinc-400">#{transaction.tags[0]}</Text>
+          <View className="mt-0.5 px-1.5 py-0.5 bg-ink-100 dark:bg-ink-800 rounded">
+            <Text className="text-[10px] text-ink-600 dark:text-ink-400">#{transaction.tags[0]}</Text>
           </View>
         )}
       </View>

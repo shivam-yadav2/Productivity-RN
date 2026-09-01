@@ -12,6 +12,7 @@ import { documentRepository } from '../database/repositories/documentRepo';
 import { pickAndSaveDocument, shareDocument, deleteDocument } from '../services/documentStorage';
 import { audioService } from '../services/audioService';
 import { cn } from '../utils/cn';
+import { ink } from '../utils/theme';
 
 export const DocumentsScreen: React.FC = () => {
   const { db } = useDatabase();
@@ -76,10 +77,10 @@ export const DocumentsScreen: React.FC = () => {
           <View className="flex-col gap-3 pb-1">
             <View className="flex-row items-center justify-between pt-1">
               <View className="flex-col">
-                <Text className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+                <Text className="text-xl font-bold text-ink-900 dark:text-ink-100 tracking-tight">
                   Documents
                 </Text>
-                <Text className="text-xs text-zinc-500">
+                <Text className="text-xs text-ink-500">
                   {documents.length} saved {documents.length === 1 ? 'document' : 'documents'}
                 </Text>
               </View>
@@ -87,18 +88,18 @@ export const DocumentsScreen: React.FC = () => {
 
             <View className="flex-1 relative justify-center">
               <View className="absolute left-3 z-10">
-                <Search size={16} color="#71717a" />
+                <Search size={16} color={ink[500]} />
               </View>
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search documents..."
-                placeholderTextColor="#a1a1aa"
-                className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-zinc-100"
+                placeholderTextColor={ink[400]}
+                className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-800 rounded-xl text-ink-900 dark:text-ink-100"
               />
               {searchQuery ? (
                 <Pressable onPress={() => setSearchQuery('')} className="absolute right-2.5">
-                  <X size={14} color="#71717a" />
+                  <X size={14} color={ink[500]} />
                 </Pressable>
               ) : null}
             </View>
@@ -116,9 +117,9 @@ export const DocumentsScreen: React.FC = () => {
           </View>
         )}
         ListEmptyComponent={
-          <View className="py-12 items-center justify-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
-            <FolderOpen size={32} color="#a1a1aa" />
-            <Text className="text-xs text-zinc-500 mt-2 text-center px-6">
+          <View className="py-12 items-center justify-center bg-ink-50 dark:bg-ink-800/30 rounded-2xl border border-ink-200/60 dark:border-ink-800">
+            <FolderOpen size={32} color={ink[400]} />
+            <Text className="text-xs text-ink-500 mt-2 text-center px-6">
               {searchQuery ? 'No documents match your search.' : 'No documents saved yet. Add one to get started.'}
             </Text>
           </View>
@@ -130,7 +131,7 @@ export const DocumentsScreen: React.FC = () => {
         style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}
       >
         <View
-          className="bg-white/90 dark:bg-zinc-900/90 p-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80"
+          className="bg-surface/90 dark:bg-surface-dark/90 p-2 rounded-3xl border border-ink-200/80 dark:border-ink-800/80"
           style={{ elevation: 6, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8 }}
         >
           <Button variant="primary" onPress={handleAddDocument} disabled={isSaving} className="rounded-xl">

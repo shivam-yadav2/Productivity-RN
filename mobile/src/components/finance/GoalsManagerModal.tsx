@@ -13,6 +13,7 @@ import { IconHelper } from '../ui/IconHelper';
 import { AnimatedBar } from '../ui/AnimatedBar';
 import { Plus, Edit2, Check, Trash2, PiggyBank, X } from 'lucide-react-native';
 import { audioService } from '../../services/audioService';
+import { ink } from '../../utils/theme';
 
 interface GoalsManagerModalProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ const GOAL_COLORS = ['#2563eb', '#059669', '#4f46e5', '#d97706', '#dc2626', '#7c
 export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, onClose }) => {
   const { db } = useDatabase();
   const { resolvedTheme } = useTheme();
-  const selectedAccentColor = resolvedTheme === 'dark' ? '#18181b' : '#ffffff';
+  const selectedAccentColor = resolvedTheme === 'dark' ? ink[900] : '#ffffff';
   const [isCreating, setIsCreating] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [contributingId, setContributingId] = useState<string | null>(null);
@@ -166,7 +167,7 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
 
           {/* Color & Icon Picker */}
           <View className="flex-col gap-1.5">
-            <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Icon & Color</Text>
+            <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">Icon & Color</Text>
             <View className="flex-row items-center gap-2 flex-wrap mb-2">
               {GOAL_COLORS.map((c) => (
                 <Pressable
@@ -187,11 +188,11 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
                   onPress={() => setIcon(ic)}
                   className={
                     icon === ic
-                      ? 'p-2 rounded-xl border border-transparent bg-zinc-900 dark:bg-zinc-100'
-                      : 'p-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800'
+                      ? 'p-2 rounded-xl border border-transparent bg-ink-900 dark:bg-ink-100'
+                      : 'p-2 rounded-xl border border-ink-200 dark:border-ink-700 bg-ink-50 dark:bg-ink-800'
                   }
                 >
-                  <IconHelper name={ic} size={18} color={icon === ic ? selectedAccentColor : '#71717a'} />
+                  <IconHelper name={ic} size={18} color={icon === ic ? selectedAccentColor : ink[500]} />
                 </Pressable>
               ))}
             </View>
@@ -199,7 +200,7 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
 
           {error ? <Text className="text-xs text-rose-500 font-semibold">{error}</Text> : null}
 
-          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <View className="flex-row items-center justify-end gap-2 pt-2 border-t border-ink-100 dark:border-ink-800">
             <Button variant="ghost" onPress={() => setIsCreating(false)}>
               <Text className={buttonTextColor.ghost}>Back</Text>
             </Button>
@@ -211,7 +212,7 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
       ) : (
         <View className="flex-col gap-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs text-zinc-500 font-medium">{goals.length} Savings Goals</Text>
+            <Text className="text-xs text-ink-500 font-medium">{goals.length} Savings Goals</Text>
             <Button size="sm" onPress={handleStartCreate}>
               <Plus size={16} color="#ffffff" />
               <Text className={buttonTextColor.primary}>Add Goal</Text>
@@ -219,9 +220,9 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
           </View>
 
           {goals.length === 0 ? (
-            <View className="py-8 items-center bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200/60 dark:border-zinc-800">
-              <PiggyBank size={32} color="#a1a1aa" />
-              <Text className="text-xs text-zinc-500 mt-2 text-center px-4">
+            <View className="py-8 items-center bg-ink-50 dark:bg-ink-800/30 rounded-3xl border border-ink-200/60 dark:border-ink-800">
+              <PiggyBank size={32} color={ink[400]} />
+              <Text className="text-xs text-ink-500 mt-2 text-center px-4">
                 No savings goals yet. Start tracking a trip, emergency fund, or a big purchase.
               </Text>
             </View>
@@ -234,7 +235,7 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
                   return (
                     <View
                       key={goal.id}
-                      className="flex-col gap-2.5 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800"
+                      className="flex-col gap-2.5 p-3 rounded-2xl bg-ink-50 dark:bg-ink-800/50 border border-ink-200/70 dark:border-ink-800"
                     >
                       <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center gap-3 flex-1 min-w-0 pr-2">
@@ -245,10 +246,10 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
                             <IconHelper name={goal.icon} size={20} color="#ffffff" />
                           </View>
                           <View className="flex-col min-w-0 flex-1">
-                            <Text numberOfLines={1} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            <Text numberOfLines={1} className="text-sm font-semibold text-ink-900 dark:text-ink-100">
                               {goal.name}
                             </Text>
-                            <Text className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                            <Text className="text-xs font-medium text-ink-600 dark:text-ink-400">
                               {formatCurrency(goal.savedAmountMinor, db.settings.currency)} saved of{' '}
                               {formatCurrency(goal.targetAmountMinor, db.settings.currency)}
                             </Text>
@@ -258,22 +259,22 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
                         <View className="flex-row items-center gap-1 shrink-0">
                           <Pressable
                             onPress={() => handleStartContribute(goal.id)}
-                            className="p-1.5 active:bg-zinc-200/60 dark:active:bg-zinc-700 rounded-lg"
+                            className="p-1.5 active:bg-ink-200/60 dark:active:bg-ink-700 rounded-lg"
                           >
                             <Plus size={16} color="#16a34a" />
                           </Pressable>
-                          <Pressable onPress={() => handleStartEdit(goal)} className="p-1.5 active:bg-zinc-200/60 dark:active:bg-zinc-700 rounded-lg">
-                            <Edit2 size={16} color="#71717a" />
+                          <Pressable onPress={() => handleStartEdit(goal)} className="p-1.5 active:bg-ink-200/60 dark:active:bg-ink-700 rounded-lg">
+                            <Edit2 size={16} color="#8A8680" />
                           </Pressable>
-                          <Pressable onPress={() => handleDelete(goal.id)} className="p-1.5 active:bg-zinc-200/60 dark:active:bg-zinc-700 rounded-lg">
-                            <Trash2 size={16} color="#a1a1aa" />
+                          <Pressable onPress={() => handleDelete(goal.id)} className="p-1.5 active:bg-ink-200/60 dark:active:bg-ink-700 rounded-lg">
+                            <Trash2 size={16} color="#A79D8C" />
                           </Pressable>
                         </View>
                       </View>
 
                       <AnimatedBar
                         percent={Math.min(100, percent)}
-                        trackClassName="h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full"
+                        trackClassName="h-1.5 bg-ink-200 dark:bg-ink-700 rounded-full"
                         fillColor={goal.color}
                       />
 
@@ -296,9 +297,9 @@ export const GoalsManagerModal: React.FC<GoalsManagerModalProps> = ({ isOpen, on
                           </Pressable>
                           <Pressable
                             onPress={() => setContributingId(null)}
-                            className="p-2.5 rounded-xl bg-zinc-200 dark:bg-zinc-700 active:bg-zinc-300 dark:active:bg-zinc-600"
+                            className="p-2.5 rounded-xl bg-ink-200 dark:bg-ink-700 active:bg-ink-300 dark:active:bg-ink-600"
                           >
-                            <X size={18} color="#71717a" />
+                            <X size={18} color="#8A8680" />
                           </Pressable>
                         </View>
                       )}

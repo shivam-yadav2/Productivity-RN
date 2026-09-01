@@ -64,8 +64,8 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({ isOpen, 
     <Modal isOpen={isOpen} onClose={onClose} title={`Budgets for ${formatMonthYear(currentMonthKey)}`} maxWidth="md">
       <View className="flex-col gap-5">
         {/* Set / Update Form */}
-        <View className="flex-col gap-3 p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200/70 dark:border-zinc-800">
-          <Text className="text-xs font-bold uppercase tracking-wider text-zinc-500">Set Monthly Limit</Text>
+        <View className="flex-col gap-3 p-3.5 bg-ink-50 dark:bg-ink-800/40 rounded-2xl border border-ink-200/70 dark:border-ink-800">
+          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500">Set Monthly Limit</Text>
 
           <View className="flex-row gap-2">
             <View className="flex-1">
@@ -92,12 +92,12 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({ isOpen, 
 
         {/* Existing Budgets List */}
         <View className="flex-col gap-2">
-          <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+          <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">
             Configured Budgets ({currentBudgets.length})
           </Text>
 
           {currentBudgets.length === 0 ? (
-            <Text className="text-xs text-zinc-500 py-4 text-center">No budgets configured for this month.</Text>
+            <Text className="text-xs text-ink-500 py-4 text-center">No budgets configured for this month.</Text>
           ) : (
             <ScrollView className="max-h-52">
               <View className="flex-col gap-2">
@@ -106,24 +106,24 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({ isOpen, 
                   return (
                     <View
                       key={b.id}
-                      className="flex-row items-center justify-between p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-800"
+                      className="flex-row items-center justify-between p-3 rounded-xl bg-white dark:bg-ink-900 border border-ink-200/70 dark:border-ink-800"
                     >
                       <View className="flex-row items-center gap-2.5">
-                        <View className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 items-center justify-center">
-                          <IconHelper name={cat?.icon || 'PiggyBank'} size={16} color="#3f3f46" />
+                        <View className="w-8 h-8 rounded-lg bg-ink-100 dark:bg-ink-800 items-center justify-center">
+                          <IconHelper name={cat?.icon || 'PiggyBank'} size={16} color="#4A443B" />
                         </View>
                         <View className="flex-col">
-                          <Text className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                          <Text className="text-xs font-semibold text-ink-900 dark:text-ink-100">
                             {cat?.name || 'Total Monthly Budget'}
                           </Text>
-                          <Text className="text-xs font-medium text-zinc-500">
+                          <Text className="text-xs font-medium text-ink-500">
                             Limit: {formatCurrency(b.limitMinor, db.settings.currency)}
                           </Text>
                         </View>
                       </View>
 
                       <Pressable onPress={() => handleDeleteBudget(b.id)} className="p-1.5">
-                        <Trash2 size={16} color="#a1a1aa" />
+                        <Trash2 size={16} color="#A79D8C" />
                       </Pressable>
                     </View>
                   );
