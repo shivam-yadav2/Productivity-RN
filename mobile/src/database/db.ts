@@ -404,13 +404,42 @@ class DatabaseEngine {
   }
 
   /**
+   * Every repo write replaces a whole record (`table[id] = newRecord`) or deletes one —
+   * never mutates a record's fields in place — so a snapshot only needs to protect each
+   * table's id->record map, not deep-clone every record's contents. This is what makes a
+   * shallow one-level-per-table clone a correct (and much cheaper) stand-in for the old
+   * JSON.parse(JSON.stringify(...)) full-tree clone, which re-serialized the entire
+   * database — including every transaction, note, and habit log ever recorded — on EVERY
+   * single write, synchronously, no matter how small that write was.
+   */
+  private shallowCloneTables(): DatabaseTables {
+    const t = this.tables;
+    return {
+      accounts: { ...t.accounts },
+      categories: { ...t.categories },
+      transactions: { ...t.transactions },
+      budgets: { ...t.budgets },
+      recurringTransactions: { ...t.recurringTransactions },
+      tasks: { ...t.tasks },
+      habits: { ...t.habits },
+      habitLogs: { ...t.habitLogs },
+      focusSessions: { ...t.focusSessions },
+      documents: { ...t.documents },
+      savingsGoals: { ...t.savingsGoals },
+      debts: { ...t.debts },
+      notes: { ...t.notes },
+      settings: t.settings,
+    };
+  }
+
+  /**
    * ATOMIC TRANSACTION RUNNER (Rule 10):
    * All mutations inside the transaction callback execute on a clone snapshot.
    * If any error is thrown, the entire operation is rolled back and no state changes persist.
    */
   public runTransaction<T>(callback: (db: DatabaseTables) => T): T {
     // Snapshot clone for rollback safety
-    const snapshot = JSON.parse(JSON.stringify(this.tables)) as DatabaseTables;
+    const snapshot = this.shallowCloneTables();
     try {
       const result = callback(this.tables);
       this.persist();

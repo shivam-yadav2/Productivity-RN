@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { spring, timing, useReducedMotion } from '../../utils/motion';
 import { inkText, surface } from '../../utils/theme';
+import { audioService } from '../../services/audioService';
 
 type IconType = React.ComponentType<{ size?: number; color?: string }>;
 
@@ -51,6 +52,14 @@ export const TabBarButton: React.FC<TabBarButtonProps> = ({ label, icon: Icon, a
 
   return (
     <Pressable
+      // Fired on touch-down rather than bundled into onPress, so the tick is felt the
+      // instant a finger lands — not after `onPress` also runs the tab switch + whatever
+      // that newly-shown screen's first mount costs, which is what made this feel delayed.
+      onPressIn={() => {
+        if (active) return;
+        audioService.playSoftClick();
+        audioService.triggerHaptic('light');
+      }}
       onPress={onPress}
       style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}
       accessibilityRole="tab"

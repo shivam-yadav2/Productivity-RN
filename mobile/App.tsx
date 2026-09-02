@@ -42,7 +42,6 @@ import { ink, inkMuted } from './src/utils/theme';
 
 import { Transaction, Task, Habit, Note } from './src/types';
 import { cn } from './src/utils/cn';
-import { audioService } from './src/services/audioService';
 import { shareDocument } from './src/services/documentStorage';
 import { SearchResult } from './src/services/searchService';
 
@@ -100,10 +99,10 @@ function MainApp() {
     );
   }
 
+  // Sound + haptic for this fire on TabBarButton's onPressIn (touch-down), not here —
+  // see TabBarButton.tsx for why.
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-    audioService.playSoftClick();
-    audioService.triggerHaptic('light');
   };
 
   const handleOpenEditTransaction = (tx: Transaction) => {
