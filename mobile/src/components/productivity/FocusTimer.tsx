@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, useColorScheme } from 'react-native';
+import { View, Text, Pressable, useColorScheme, AppState } from 'react-native';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { Task, FocusMode } from '../../types';
 import { useDatabase } from '../../context/DatabaseContext';
 import { focusRepository } from '../../database/repositories/focusRepo';
 import { getTodayDateString, getCurrentTimeString } from '../../utils/date';
 import { audioService } from '../../services/audioService';
+import { notificationService, setFocusSessionActive, FOCUS_END_CATEGORY } from '../../services/notificationService';
 import { Select } from '../ui/Select';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { AnimatedBar } from '../ui/AnimatedBar';
 import { Play, Pause, RotateCcw } from 'lucide-react-native';
 import { cn } from '../../utils/cn';
 import { ink, inkText } from '../../utils/theme';
+
+const KEEP_AWAKE_TAG = 'focus-timer';
 
 interface FocusTimerProps {
   initialTask?: Task | null;
@@ -37,6 +41,14 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
   const [sessionStartTime, setSessionStartTime] = useState<string>('');
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Absolute end time, not a countdown — a plain setInterval decrementing a counter
+  // stops firing reliably once the screen locks (the exact "screen goes off, timer
+  // stops, reopening just continues from the stale count" bug this replaces). Deriving
+  // timeLeft from `Date.now()` vs this timestamp means that even if ticks get skipped or
+  // paused while backgrounded, the moment JS runs again it snaps to the CORRECT elapsed
+  // time instead of quietly losing the gap.
+  const endAtMsRef = useRef<number | null>(null);
+  const pendingEndNotificationId = useRef<string | null>(null);
 
   useEffect(() => {
     if (initialTask) {
@@ -44,15 +56,34 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
     }
   }, [initialTask]);
 
-  const switchMode = (newMode: FocusMode) => {
+  const clearEndNotification = () => {
+    if (pendingEndNotificationId.current) {
+      notificationService.cancel(pendingEndNotificationId.current);
+      pendingEndNotificationId.current = null;
+    }
+  };
+
+  const stopRunningState = () => {
     setIsRunning(false);
+    deactivateKeepAwake(KEEP_AWAKE_TAG);
+    setFocusSessionActive(false);
+  };
+
+  const switchMode = (newMode: FocusMode) => {
+    stopRunningState();
+    clearEndNotification();
+    endAtMsRef.current = null;
     if (timerRef.current) clearInterval(timerRef.current);
     setMode(newMode);
     setTimeLeft(getTargetDurationSecs(newMode));
   };
 
   const handleComplete = () => {
-    setIsRunning(false);
+    stopRunningState();
+    // The JS timer reached zero on its own (app in foreground) — the scheduled backstop
+    // notification for this same moment is now redundant, so drop it before it also fires.
+    clearEndNotification();
+    endAtMsRef.current = null;
     audioService.playTimerBell();
     audioService.triggerHaptic('success');
 
@@ -74,17 +105,16 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
     }
   };
 
+  const recomputeFromEndTime = () => {
+    if (endAtMsRef.current == null) return;
+    const remaining = Math.max(0, Math.round((endAtMsRef.current - Date.now()) / 1000));
+    setTimeLeft(remaining);
+    if (remaining <= 0) handleComplete();
+  };
+
   useEffect(() => {
     if (isRunning) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            handleComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      timerRef.current = setInterval(recomputeFromEndTime, 1000);
     } else if (timerRef.current) {
       clearInterval(timerRef.current);
     }
@@ -95,23 +125,62 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, mode, selectedTask]);
 
+  // Re-sync the instant the app comes back to the foreground, instead of waiting up to a
+  // second for the next tick — covers the screen-lock/backgrounding gap directly.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && isRunning) recomputeFromEndTime();
+    });
+    return () => sub.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning]);
+
+  // Deactivate keep-awake if this screen unmounts mid-session (e.g. navigating away).
+  useEffect(() => {
+    return () => {
+      deactivateKeepAwake(KEEP_AWAKE_TAG);
+      setFocusSessionActive(false);
+    };
+  }, []);
+
   const handleStart = () => {
     if (!isRunning) {
       setSessionStartTime(getCurrentTimeString());
+      endAtMsRef.current = Date.now() + timeLeft * 1000;
       setIsRunning(true);
+      activateKeepAwakeAsync(KEEP_AWAKE_TAG);
+      setFocusSessionActive(true);
       audioService.playSoftClick();
       audioService.triggerHaptic('medium');
+
+      // Backstop: if the screen still ends up locking anyway (keep-awake can be
+      // overridden by the phone's own power button) and the JS timer gets suspended,
+      // this still notifies you the moment the session was due to end.
+      const label = mode === 'FOCUS' ? 'Focus session' : mode === 'SHORT_BREAK' ? 'Short break' : 'Long break';
+      const identifier = `focusend_${Date.now()}`;
+      const endDate = new Date(endAtMsRef.current);
+      notificationService
+        .scheduleAt(identifier, `${label} complete`, "Time's up — nice work.", endDate, {
+          category: FOCUS_END_CATEGORY,
+        })
+        .then((id) => {
+          pendingEndNotificationId.current = id;
+        });
     }
   };
 
   const handlePause = () => {
-    setIsRunning(false);
+    stopRunningState();
+    clearEndNotification();
+    endAtMsRef.current = null;
     audioService.playSoftClick();
     audioService.triggerHaptic('light');
   };
 
   const handleReset = () => {
-    setIsRunning(false);
+    stopRunningState();
+    clearEndNotification();
+    endAtMsRef.current = null;
     setTimeLeft(getTargetDurationSecs(mode));
     audioService.triggerHaptic('light');
   };

@@ -21,7 +21,8 @@ export const habitRepository = {
     color?: string;
     frequency?: HabitFrequency;
     targetDaysPerWeek?: number;
-    reminderTime?: string;
+    reminderTimes?: string[];
+    reminderNotificationIds?: string[];
     startDate?: string;
   }): Habit {
     if (!params.name.trim()) {
@@ -39,7 +40,8 @@ export const habitRepository = {
       color: params.color || '#10b981',
       frequency: params.frequency || 'DAILY',
       targetDaysPerWeek: params.targetDaysPerWeek || 7,
-      reminderTime: params.reminderTime,
+      reminderTimes: params.reminderTimes,
+      reminderNotificationIds: params.reminderNotificationIds,
       startDate: params.startDate || getTodayDateString(),
       isActive: true,
       createdAt: now,

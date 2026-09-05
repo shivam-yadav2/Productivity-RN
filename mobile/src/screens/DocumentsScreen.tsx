@@ -6,6 +6,7 @@ import { useDatabase } from '../context/DatabaseContext';
 import { AppDocument } from '../types';
 import { DocumentRow } from '../components/documents/DocumentRow';
 import { RenameDocumentModal } from '../components/documents/RenameDocumentModal';
+import { DocumentPreviewModal } from '../components/documents/DocumentPreviewModal';
 import { Button, buttonTextColor } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { documentRepository } from '../database/repositories/documentRepo';
@@ -18,6 +19,7 @@ export const DocumentsScreen: React.FC = () => {
   const { db } = useDatabase();
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingDoc, setRenamingDoc] = useState<AppDocument | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<AppDocument | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const documents = useMemo(() => {
@@ -62,10 +64,16 @@ export const DocumentsScreen: React.FC = () => {
         onPress: () => {
           deleteDocument(doc);
           audioService.triggerHaptic('light');
+          setPreviewDoc((prev) => (prev?.id === doc.id ? null : prev));
         },
       },
     ]);
   };
+
+  // The preview modal is opened with a snapshot of the tapped document — re-derive it from
+  // the live list so a rename made from inside the preview shows up immediately, instead of
+  // the header staying stuck on the name it had at the moment the preview was opened.
+  const livePreviewDoc = previewDoc ? documents.find((d) => d.id === previewDoc.id) || null : null;
 
   return (
     <View className="flex-1">
@@ -110,7 +118,7 @@ export const DocumentsScreen: React.FC = () => {
             <DocumentRow
               document={item}
               index={index}
-              onPress={() => shareDocument(item)}
+              onPress={() => setPreviewDoc(item)}
               onRename={() => setRenamingDoc(item)}
               onDelete={() => handleDelete(item)}
             />
@@ -148,6 +156,15 @@ export const DocumentsScreen: React.FC = () => {
         isOpen={Boolean(renamingDoc)}
         onClose={() => setRenamingDoc(null)}
         onSave={handleRenameSave}
+      />
+
+      <DocumentPreviewModal
+        document={livePreviewDoc}
+        isOpen={Boolean(previewDoc)}
+        onClose={() => setPreviewDoc(null)}
+        onShare={() => livePreviewDoc && shareDocument(livePreviewDoc)}
+        onRename={() => livePreviewDoc && setRenamingDoc(livePreviewDoc)}
+        onDelete={() => livePreviewDoc && handleDelete(livePreviewDoc)}
       />
     </View>
   );

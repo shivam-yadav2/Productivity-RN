@@ -29,7 +29,11 @@ export interface Habit {
   color: string;
   frequency: HabitFrequency;
   targetDaysPerWeek: number;
-  reminderTime?: string;
+  /** "HH:mm" times of day this habit reminds at — can be more than one per day. */
+  reminderTimes?: string[];
+  /** Scheduled notification identifiers, one per `reminderTimes` entry, in the same
+   *  order — needed to cancel/reschedule the right ones when reminderTimes changes. */
+  reminderNotificationIds?: string[];
   startDate: string;
   isActive: boolean;
   createdAt: string;
