@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { dbEngine, DatabaseTables } from '../database/db';
+import { refreshAndroidWidgets } from '../widgets/refreshWidgets';
 
 interface DatabaseContextType {
   db: DatabaseTables;
@@ -53,6 +54,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (isMounted) {
         setDb(cloneTables(dbEngine.getTables()));
       }
+      refreshAndroidWidgets();
     });
 
     return () => {

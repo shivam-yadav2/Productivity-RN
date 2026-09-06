@@ -1,6 +1,6 @@
 import './global.css';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Linking } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -148,6 +148,44 @@ function MainApp() {
       setActiveTab('PRODUCTIVITY');
     }
   };
+
+  // Widgets deep-link in via `personalapp://<route>` (tapping a home-screen widget opens
+  // the app through this, not through any in-app navigation) — a plain string strip is
+  // used instead of the URL constructor since custom schemes parse inconsistently across
+  // engines for the "host" part of a non-http URL.
+  const handleDeepLink = useCallback((url: string | null) => {
+    if (!url) return;
+    const route = url.replace(/^[a-z]+:\/\//i, '');
+    switch (route) {
+      case 'money':
+        setActiveTab('MONEY');
+        break;
+      case 'habits':
+        setActiveTab('PRODUCTIVITY');
+        break;
+      case 'tasks':
+        setActiveTab('PRODUCTIVITY');
+        break;
+      case 'add-expense':
+        setEditingTransaction(null);
+        setIsExpenseModalOpen(true);
+        break;
+      case 'add-task':
+        setSelectedTask(null);
+        setIsTaskModalOpen(true);
+        break;
+      case 'add-note':
+        setSelectedNote(null);
+        setIsNoteModalOpen(true);
+        break;
+    }
+  }, []);
+
+  useEffect(() => {
+    Linking.getInitialURL().then(handleDeepLink);
+    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
+    return () => sub.remove();
+  }, [handleDeepLink]);
 
   const tabs: { key: TabType; label: string; icon: typeof Home }[] = [
     { key: 'HOME', label: 'Today', icon: Home },

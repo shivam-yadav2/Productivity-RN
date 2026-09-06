@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "personalapp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
@@ -62,7 +63,57 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "Balance",
+              "label": "Balance",
+              "description": "Total balance across accounts, and today's spend.",
+              "minWidth": "180dp",
+              "minHeight": "90dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "HabitStreak",
+              "label": "Habit Streak",
+              "description": "Your last 10 days for each daily habit.",
+              "minWidth": "250dp",
+              "minHeight": "120dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "Today",
+              "label": "Today",
+              "description": "Today's date and what's due.",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "QuickAdd",
+              "label": "Quick Add",
+              "description": "One-tap shortcuts to add an expense, task, or note.",
+              "minWidth": "180dp",
+              "minHeight": "70dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal"
+            }
+          ]
+        }
+      ]
     ]
   }
 }
