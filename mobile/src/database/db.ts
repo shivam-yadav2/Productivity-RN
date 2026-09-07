@@ -26,6 +26,7 @@ import {
   SavingsGoal,
   Debt,
   Note,
+  WidgetConfig,
 } from '../types';
 import {
   DEFAULT_ACCOUNTS,
@@ -49,6 +50,7 @@ export interface DatabaseTables {
   habitLogs: Record<string, HabitLog>;
   focusSessions: Record<string, FocusSession>;
   documents: Record<string, AppDocument>;
+  widgetConfigs: Record<string, WidgetConfig>;
   savingsGoals: Record<string, SavingsGoal>;
   debts: Record<string, Debt>;
   notes: Record<string, Note>;
@@ -90,6 +92,7 @@ class DatabaseEngine {
       habitLogs: {},
       focusSessions: {},
       documents: {},
+      widgetConfigs: {},
       savingsGoals: {},
       debts: {},
       notes: {},
@@ -425,6 +428,7 @@ class DatabaseEngine {
       habitLogs: { ...t.habitLogs },
       focusSessions: { ...t.focusSessions },
       documents: { ...t.documents },
+      widgetConfigs: { ...t.widgetConfigs },
       savingsGoals: { ...t.savingsGoals },
       debts: { ...t.debts },
       notes: { ...t.notes },
@@ -549,7 +553,8 @@ class DatabaseEngine {
    */
   public resetAllData(): void {
     const documents = this.tables.documents;
-    this.tables = { ...this.getEmptyDatabase(), documents };
+    const widgetConfigs = this.tables.widgetConfigs;
+    this.tables = { ...this.getEmptyDatabase(), documents, widgetConfigs };
     this.persist();
     this.notify();
   }
@@ -559,7 +564,8 @@ class DatabaseEngine {
    *  don't reappear and make the reset look like it did nothing. */
   public resetToFactoryDefaults(): void {
     const documents = this.tables.documents;
-    this.tables = { ...this.getEmptyDatabase(), documents };
+    const widgetConfigs = this.tables.widgetConfigs;
+    this.tables = { ...this.getEmptyDatabase(), documents, widgetConfigs };
     this.seedInitialSampleData();
     this.persist();
     this.notify();

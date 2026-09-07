@@ -30,6 +30,7 @@ function cloneTables(tables: DatabaseTables): DatabaseTables {
     habitLogs: { ...tables.habitLogs },
     focusSessions: { ...tables.focusSessions },
     documents: { ...tables.documents },
+    widgetConfigs: { ...tables.widgetConfigs },
     savingsGoals: { ...tables.savingsGoals },
     debts: { ...tables.debts },
     notes: { ...tables.notes },

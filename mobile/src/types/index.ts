@@ -5,3 +5,4 @@ export * from './documents';
 export * from './goals';
 export * from './debts';
 export * from './notes';
+export * from './widgets';

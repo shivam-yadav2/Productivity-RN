@@ -22,6 +22,14 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { PinLockScreen } from './src/components/security/PinLockScreen';
 import { Logo } from './src/components/ui/Logo';
 import { TabBarButton } from './src/components/ui/TabBarButton';
+import { ScreenBoot } from './src/components/ui/ScreenBoot';
+import {
+  HomeSkeleton,
+  MoneySkeleton,
+  ProductivitySkeleton,
+  DocumentsSkeleton,
+  SettingsSkeleton,
+} from './src/components/skeletons/ScreenSkeletons';
 
 import { ExpenseFormModal } from './src/components/finance/ExpenseFormModal';
 import { IncomeFormModal } from './src/components/finance/IncomeFormModal';
@@ -243,6 +251,7 @@ function MainApp() {
       <View className="flex-1 px-4 pt-3" style={{ paddingBottom: insets.bottom + 76 }}>
         {mountedTabs.has('HOME') && (
         <View style={{ flex: 1, display: activeTab === 'HOME' ? 'flex' : 'none' }}>
+          <ScreenBoot fallback={<HomeSkeleton />}>
           <HomeScreen
             onNavigateToMoney={() => handleTabChange('MONEY')}
             onNavigateToProductivity={() => handleTabChange('PRODUCTIVITY')}
@@ -269,11 +278,13 @@ function MainApp() {
               setIsHabitModalOpen(true);
             }}
           />
+          </ScreenBoot>
         </View>
         )}
 
         {mountedTabs.has('MONEY') && (
         <View style={{ flex: 1, display: activeTab === 'MONEY' ? 'flex' : 'none' }}>
+          <ScreenBoot fallback={<MoneySkeleton />}>
           <MoneyScreen
             onOpenAddExpense={() => {
               setEditingTransaction(null);
@@ -295,11 +306,13 @@ function MainApp() {
             onOpenDebtsManager={() => setIsDebtsModalOpen(true)}
             onSelectTransaction={(tx) => setSelectedTransaction(tx)}
           />
+          </ScreenBoot>
         </View>
         )}
 
         {mountedTabs.has('PRODUCTIVITY') && (
         <View style={{ flex: 1, display: activeTab === 'PRODUCTIVITY' ? 'flex' : 'none' }}>
+          <ScreenBoot fallback={<ProductivitySkeleton />}>
           <ProductivityScreen
             onSelectTask={(task) => {
               setSelectedTask(task);
@@ -327,21 +340,26 @@ function MainApp() {
               setIsNoteModalOpen(true);
             }}
           />
+          </ScreenBoot>
         </View>
         )}
 
         {mountedTabs.has('DOCUMENTS') && (
         <View style={{ flex: 1, display: activeTab === 'DOCUMENTS' ? 'flex' : 'none' }}>
-          <DocumentsScreen />
+          <ScreenBoot fallback={<DocumentsSkeleton />}>
+            <DocumentsScreen />
+          </ScreenBoot>
         </View>
         )}
 
         {mountedTabs.has('SETTINGS') && (
         <View style={{ flex: 1, display: activeTab === 'SETTINGS' ? 'flex' : 'none' }}>
-          <SettingsScreen
-            onOpenAccountsManager={() => setIsAccountsModalOpen(true)}
-            onOpenCategoriesManager={() => setIsCategoriesModalOpen(true)}
-          />
+          <ScreenBoot fallback={<SettingsSkeleton />}>
+            <SettingsScreen
+              onOpenAccountsManager={() => setIsAccountsModalOpen(true)}
+              onOpenCategoriesManager={() => setIsCategoriesModalOpen(true)}
+            />
+          </ScreenBoot>
         </View>
         )}
       </View>

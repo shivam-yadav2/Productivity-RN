@@ -1,5 +1,5 @@
 import { requestWidgetUpdate } from 'react-native-android-widget';
-import { renderWidgetByName } from './widgetTaskHandler';
+import { renderConfiguredWidget } from './widgetTaskHandler';
 
 const DATA_DRIVEN_WIDGETS = ['Balance', 'HabitStreak', 'Today'];
 
@@ -12,7 +12,7 @@ export function refreshAndroidWidgets() {
   for (const widgetName of DATA_DRIVEN_WIDGETS) {
     requestWidgetUpdate({
       widgetName,
-      renderWidget: () => renderWidgetByName(widgetName) as any,
+      renderWidget: (info) => renderConfiguredWidget(info) as any,
     }).catch(() => {
       // Best-effort — widgets aren't critical path, and this is a no-op on iOS/web anyway.
     });
