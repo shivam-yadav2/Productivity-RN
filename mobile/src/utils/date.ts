@@ -147,3 +147,27 @@ export function getDateRangeForPeriod(
 
   return { startDate: '1970-01-01', endDate: '2099-12-31', label: 'All Time' };
 }
+
+/** Moves a "YYYY-MM" key forward (+1) or back (-1) by whole months, rolling the year. */
+export function shiftMonthKey(monthKey: string, delta: number): string {
+  const [year, month] = monthKey.split('-').map(Number);
+  const d = new Date(year, month - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** First and last calendar day of a "YYYY-MM" key, as "YYYY-MM-DD" strings. */
+export function getMonthBounds(monthKey: string): { startDate: string; endDate: string } {
+  const [year, month] = monthKey.split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  return {
+    startDate: `${monthKey}-01`,
+    endDate: `${monthKey}-${String(lastDay).padStart(2, '0')}`,
+  };
+}
+
+/** Compact "Sep 2026" label — the month navigator needs to fit beside its arrows. */
+export function formatMonthYearShort(monthKey: string): string {
+  if (!monthKey || monthKey.length < 7) return monthKey;
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}

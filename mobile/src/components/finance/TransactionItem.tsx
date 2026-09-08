@@ -16,10 +16,19 @@ interface TransactionItemProps {
   transaction: Transaction;
   onPress?: () => void;
   index?: number;
+  /** Long lists opt rows out of the entrance animation past the first screenful —
+   *  dozens of simultaneous Reanimated entries cost real frames on mount. */
+  animate?: boolean;
 }
 
-export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ transaction, onPress, index = 0 }) => {
+export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
+  transaction,
+  onPress,
+  index = 0,
+  animate = true,
+}) => {
   const reduced = useReducedMotion();
+  const skipAnimation = reduced || !animate;
   const { db } = useDatabase();
 
   const isExpense = transaction.type === 'EXPENSE';
@@ -36,7 +45,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({ tra
 
   return (
     <Animated.View
-      entering={reduced ? undefined : listItemEntering(index)}
+      entering={skipAnimation ? undefined : listItemEntering(index)}
       exiting={reduced ? undefined : listItemExiting}
       layout={reduced ? undefined : listItemLayout}
     >

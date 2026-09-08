@@ -1,11 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, TextInput, Pressable } from 'react-native';
 import { Transaction, TransactionType } from '../../types';
 import { useDatabase } from '../../context/DatabaseContext';
 import { transactionRepository } from '../../database/repositories/transactionRepo';
 import { TransactionItem } from './TransactionItem';
-import { formatDateDisplay } from '../../utils/date';
-import { Search, Filter, Plus, SlidersHorizontal, X } from 'lucide-react-native';
+import {
+  formatDateDisplay,
+  getMonthYearKey,
+  getMonthBounds,
+  shiftMonthKey,
+  formatMonthYearShort,
+} from '../../utils/date';
+import {
+  Search,
+  Filter,
+  Plus,
+  SlidersHorizontal,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  CalendarRange,
+} from 'lucide-react-native';
 import { Select } from '../ui/Select';
 import { cn } from '../../utils/cn';
 import { ink } from '../../utils/theme';
@@ -17,6 +32,15 @@ interface TransactionListProps {
   onOpenTransfer: () => void;
   limit?: number;
 }
+
+/** How many rows to mount before the "show more" step. Mounting a row isn't free —
+ *  each one is an animated view with its own icon and currency formatting — so a month
+ *  with hundreds of entries still needs a ceiling on top of the month scoping. */
+const PAGE_SIZE = 40;
+
+/** Only the first rows get an entrance animation; past this they mount plainly.
+ *  Dozens of simultaneous Reanimated entries is a real cost on a mid-range phone. */
+const ANIMATE_FIRST_N = 12;
 
 export const TransactionList: React.FC<TransactionListProps> = ({
   onSelectTransaction,
@@ -31,38 +55,66 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [showFilters, setShowFilters] = useState(false);
 
+  // The ledger opens on the current month rather than the whole history: rendering every
+  // transaction ever recorded was what made this screen slow to appear, since all of them
+  // were mounted at once with no virtualization.
+  const [monthKey, setMonthKey] = useState(() => getMonthYearKey());
+  const [allTime, setAllTime] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   const transactions = useMemo(() => {
+    const bounds = allTime ? undefined : getMonthBounds(monthKey);
     return transactionRepository.filter({
       query: searchQuery,
       type: selectedType,
       accountId: selectedAccount === 'ALL' ? undefined : selectedAccount,
       categoryId: selectedCategory === 'ALL' ? undefined : selectedCategory,
+      startDate: bounds?.startDate,
+      endDate: bounds?.endDate,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db.transactions, searchQuery, selectedType, selectedAccount, selectedCategory]);
+  }, [db.transactions, searchQuery, selectedType, selectedAccount, selectedCategory, monthKey, allTime]);
 
-  const displayedTransactions = limit ? transactions.slice(0, limit) : transactions;
+  // Any change of scope starts the page count over, so switching months never leaves you
+  // scrolled into a longer list than the new month actually has.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [monthKey, allTime, searchQuery, selectedType, selectedAccount, selectedCategory]);
+
+  const totalInScope = transactions.length;
+  const cap = limit ?? visibleCount;
+  const displayedTransactions = transactions.slice(0, cap);
+  const hasMore = totalInScope > displayedTransactions.length;
 
   const groupedTransactions = useMemo(() => {
-    const groups: { date: string; displayDate: string; items: Transaction[] }[] = [];
+    // `startIndex` is the row's position across the whole list, not just its own date
+    // group — the entrance-animation cap has to count rows overall to mean anything.
+    const groups: { date: string; displayDate: string; items: Transaction[]; startIndex: number }[] = [];
     let curDate = '';
     let curItems: Transaction[] = [];
+    let seen = 0;
+
+    const flush = () => {
+      if (curItems.length === 0) return;
+      groups.push({
+        date: curDate,
+        displayDate: formatDateDisplay(curDate),
+        items: curItems,
+        startIndex: seen,
+      });
+      seen += curItems.length;
+    };
 
     displayedTransactions.forEach((tx) => {
       if (tx.date !== curDate) {
-        if (curItems.length > 0) {
-          groups.push({ date: curDate, displayDate: formatDateDisplay(curDate), items: curItems });
-        }
+        flush();
         curDate = tx.date;
         curItems = [tx];
       } else {
         curItems.push(tx);
       }
     });
-
-    if (curItems.length > 0) {
-      groups.push({ date: curDate, displayDate: formatDateDisplay(curDate), items: curItems });
-    }
+    flush();
 
     return groups;
   }, [displayedTransactions]);
@@ -77,6 +129,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     setSelectedCategory('ALL');
   };
 
+  const isCurrentMonth = monthKey === getMonthYearKey();
+
   const accountOptions = [
     { label: 'All Accounts', value: 'ALL' },
     ...Object.values(db.accounts).map((acc) => ({ label: acc.name, value: acc.id })),
@@ -88,6 +142,49 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <View className="flex-col gap-3">
+      {/* Month scope — arrows step through months; the label toggles to all-time. */}
+      {!limit && (
+        <View className="flex-row items-center justify-between bg-ink-50 dark:bg-ink-800/50 border border-ink-200 dark:border-ink-700 rounded-2xl px-1.5 py-1.5">
+          <Pressable
+            onPress={() => setMonthKey((k) => shiftMonthKey(k, -1))}
+            disabled={allTime}
+            accessibilityLabel="Previous month"
+            className={cn(
+              'p-2 rounded-xl active:bg-ink-200/70 dark:active:bg-ink-700',
+              allTime && 'opacity-30'
+            )}
+          >
+            <ChevronLeft size={17} color={ink[500]} />
+          </Pressable>
+
+          <Pressable
+            onPress={() => setAllTime((v) => !v)}
+            accessibilityLabel={allTime ? 'Switch to monthly view' : 'Show all time'}
+            className="flex-1 flex-row items-center justify-center gap-1.5 py-1 rounded-xl active:bg-ink-200/60 dark:active:bg-ink-700/60"
+          >
+            <CalendarRange size={13} color={ink[500]} />
+            <Text className="text-[13px] font-bold text-ink-900 dark:text-ink-100">
+              {allTime ? 'All time' : formatMonthYearShort(monthKey)}
+            </Text>
+            <Text className="text-[11px] font-medium text-ink-400">
+              {totalInScope} {totalInScope === 1 ? 'entry' : 'entries'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setMonthKey((k) => shiftMonthKey(k, 1))}
+            disabled={allTime || isCurrentMonth}
+            accessibilityLabel="Next month"
+            className={cn(
+              'p-2 rounded-xl active:bg-ink-200/70 dark:active:bg-ink-700',
+              (allTime || isCurrentMonth) && 'opacity-30'
+            )}
+          >
+            <ChevronRight size={17} color={ink[500]} />
+          </Pressable>
+        </View>
+      )}
+
       {/* Search & Filter Bar */}
       <View className="flex-col gap-2">
         <View className="flex-row items-center gap-2">
@@ -187,14 +284,20 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             <Filter size={20} color={ink[500]} />
           </View>
           <Text className="text-xs font-semibold text-ink-900 dark:text-ink-100">
-            {hasActiveFilters ? 'No matching transactions' : 'No transactions yet'}
+            {hasActiveFilters
+              ? 'No matching transactions'
+              : allTime
+                ? 'No transactions yet'
+                : `Nothing in ${formatMonthYearShort(monthKey)}`}
           </Text>
           <Text className="text-[11px] text-ink-500 text-center max-w-xs mt-1">
             {hasActiveFilters
               ? 'Try resetting the filters or modifying your search query.'
-              : 'Start tracking your spending and personal income today.'}
+              : allTime
+                ? 'Start tracking your spending and personal income today.'
+                : 'Use the arrows to check another month, or tap the month name for all time.'}
           </Text>
-          {!hasActiveFilters && (
+          {!hasActiveFilters && allTime && (
             <View className="flex-row items-center gap-2 mt-4">
               <Pressable
                 onPress={onOpenAddExpense}
@@ -225,12 +328,31 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     key={tx.id}
                     className={i > 0 ? 'border-t border-ink-100 dark:border-ink-800' : ''}
                   >
-                    <TransactionItem transaction={tx} index={i} onPress={() => onSelectTransaction(tx)} />
+                    <TransactionItem
+                      transaction={tx}
+                      index={group.startIndex + i}
+                      animate={group.startIndex + i < ANIMATE_FIRST_N}
+                      onPress={() => onSelectTransaction(tx)}
+                    />
                   </View>
                 ))}
               </View>
             </View>
           ))}
+
+          {hasMore && (
+            <Pressable
+              onPress={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              className="py-3 items-center rounded-2xl border border-ink-200 dark:border-ink-800 active:bg-ink-100 dark:active:bg-ink-800/60"
+            >
+              <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">
+                Show {Math.min(PAGE_SIZE, totalInScope - displayedTransactions.length)} more
+              </Text>
+              <Text className="text-[10px] text-ink-400 mt-0.5">
+                {displayedTransactions.length} of {totalInScope}
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
     </View>
