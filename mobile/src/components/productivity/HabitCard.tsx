@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, useColorScheme } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Habit } from '../../types';
 import { habitRepository } from '../../database/repositories/habitRepo';
+import { useDatabaseTable } from '../../context/DatabaseContext';
 import { getTodayDateString, getPastDaysList, formatShortDay } from '../../utils/date';
 import { IconHelper } from '../ui/IconHelper';
 import { PressableScale } from '../ui/PressableScale';
@@ -25,10 +26,33 @@ export const HabitCard: React.FC<HabitCardProps> = React.memo(({ habit, onEdit, 
   const isDark = useColorScheme() === 'dark';
   const reduced = useReducedMotion();
   const todayStr = getTodayDateString();
-  const stats = habitRepository.getStats(habit.id);
-  const isCompletedToday = habitRepository.isCompletedToday(habit.id, todayStr);
 
-  const past7Days = getPastDaysList(7);
+  /**
+   * Subscribing to the log table is what makes this card correct, not just fast.
+   *
+   * It reads its streak straight from the repository but is `React.memo`'d on props that
+   * do NOT change when a habit is ticked (toggling writes `habitLogs`, while the `habit`
+   * object stays identical). Until now it re-rendered only because `onEdit` arrives as a
+   * fresh closure each time — accidental, and it would have gone stale the moment that
+   * callback was memoised. Reading the table here ties the refresh to the actual data.
+   */
+  const habitLogs = useDatabaseTable('habitLogs');
+
+  // getStats walks every habit log and rebuilds a date Set each call. Unmemoised that ran
+  // once per card per render, so N habits meant N full scans of the log table.
+  const stats = useMemo(
+    () => habitRepository.getStats(habit.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [habit.id, habitLogs]
+  );
+
+  const isCompletedToday = useMemo(
+    () => habitRepository.isCompletedToday(habit.id, todayStr),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [habit.id, todayStr, habitLogs]
+  );
+
+  const past7Days = useMemo(() => getPastDaysList(7), [todayStr]);
 
   const handleToggleToday = () => {
     const isNowDone = habitRepository.toggleToday(habit.id, todayStr);

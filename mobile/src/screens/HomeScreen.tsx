@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import {
   Plus,
@@ -57,36 +57,83 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const todayStr = getTodayDateString();
   const currency = db.settings.currency || 'INR';
 
-  const todayAnalytics = analyticsService.getAnalyticsForPeriod('today');
-  const { overall } = budgetService.getMonthlyBudgetStatuses();
+  // Everything below is derived from the database, and this screen re-renders on any
+  // write anywhere in the app. Uncached, each render walked every transaction several
+  // times over (analytics, budget status, and a full sort just to show three rows), which
+  // is work the Home tab does not need to repeat because a note was edited. Each memo is
+  // keyed on the narrowest table it actually reads, so the dirty tracking in
+  // DatabaseContext can keep them all warm across unrelated writes.
+  const todayAnalytics = useMemo(
+    () => analyticsService.getAnalyticsForPeriod('today'),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [db.transactions, todayStr]
+  );
 
-  const totalBalanceMinor = Object.values(db.accounts)
-    .filter((a) => a.isActive)
-    .reduce((sum, a) => sum + a.currentBalanceMinor, 0);
+  const { overall } = useMemo(
+    () => budgetService.getMonthlyBudgetStatuses(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [db.transactions, db.budgets, db.categories]
+  );
 
-  const todayTasks = Object.values(db.tasks)
-    .filter((t) => t.dueDate === todayStr || t.priority === 'URGENT')
-    .sort((a, b) => (a.status === 'COMPLETED' ? 1 : -1));
+  const totalBalanceMinor = useMemo(
+    () =>
+      Object.values(db.accounts)
+        .filter((a) => a.isActive)
+        .reduce((sum, a) => sum + a.currentBalanceMinor, 0),
+    [db.accounts]
+  );
 
-  const habits = Object.values(db.habits);
-  const habitsDoneToday = habits.filter((h) => habitRepository.isCompletedToday(h.id, todayStr)).length;
+  const todayTasks = useMemo(
+    () =>
+      Object.values(db.tasks)
+        .filter((t) => t.dueDate === todayStr || t.priority === 'URGENT')
+        .sort((a, b) => (a.status === 'COMPLETED' ? 1 : -1)),
+    [db.tasks, todayStr]
+  );
 
-  const recentTransactions = Object.values(db.transactions)
-    .sort((a, b) => {
+  const habits = useMemo(() => Object.values(db.habits), [db.habits]);
+
+  const habitsDoneToday = useMemo(
+    () => habits.filter((h) => habitRepository.isCompletedToday(h.id, todayStr)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [habits, db.habitLogs, todayStr]
+  );
+
+  // Only three rows are shown, but the newest three still have to be found. A full sort
+  // is O(n log n) on the whole ledger; a single linear pass keeping the best three is not.
+  const recentTransactions = useMemo(() => {
+    const isNewer = (a: Transaction, b: Transaction) => {
       const dateCmp = b.date.localeCompare(a.date);
-      if (dateCmp !== 0) return dateCmp;
-      return (b.time || '').localeCompare(a.time || '');
-    })
-    .slice(0, 3);
+      return dateCmp !== 0 ? dateCmp : (b.time || '').localeCompare(a.time || '');
+    };
+    const top: Transaction[] = [];
+    for (const tx of Object.values(db.transactions)) {
+      if (top.length < 3) {
+        top.push(tx);
+        top.sort(isNewer);
+      } else if (isNewer(tx, top[2]) < 0) {
+        top[2] = tx;
+        top.sort(isNewer);
+      }
+    }
+    return top;
+  }, [db.transactions]);
 
-  const upcomingBills = recurringRepository
-    .getAll()
-    .filter((r) => r.reminderEnabled && r.isActive)
-    .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
-    .slice(0, 5);
+  const upcomingBills = useMemo(
+    () =>
+      recurringRepository
+        .getAll()
+        .filter((r) => r.reminderEnabled && r.isActive)
+        .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
+        .slice(0, 5),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [db.recurringTransactions]
+  );
 
-  const now = new Date();
-  const headerDateLabel = `${now.toLocaleDateString('en-US', { weekday: 'long' })}, ${now.getDate()} ${now.toLocaleDateString('en-US', { month: 'short' })}`;
+  const headerDateLabel = useMemo(() => {
+    const now = new Date();
+    return `${now.toLocaleDateString('en-US', { weekday: 'long' })}, ${now.getDate()} ${now.toLocaleDateString('en-US', { month: 'short' })}`;
+  }, [todayStr]);
 
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 48, gap: 22 }}>
@@ -236,7 +283,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 key={tx.id}
                 className={i < recentTransactions.length - 1 ? 'border-b border-ink-100 dark:border-ink-800/60' : ''}
               >
-                <TransactionItem transaction={tx} index={i} onPress={() => onSelectTransaction(tx)} />
+                <TransactionItem
+                  transaction={tx}
+                  index={i}
+                  category={tx.categoryId ? db.categories[tx.categoryId] : undefined}
+                  sourceAccount={db.accounts[tx.accountId]}
+                  destAccount={
+                    tx.destinationAccountId ? db.accounts[tx.destinationAccountId] : undefined
+                  }
+                  currency={db.accounts[tx.accountId]?.currency || currency}
+                  onPress={() => onSelectTransaction(tx)}
+                />
               </View>
             ))}
           </View>

@@ -12,7 +12,6 @@ export interface AppSettings {
   defaultAccountId?: string;
   soundEnabled: boolean;
   hapticEnabled: boolean;
-  hapticsEnabled?: boolean;
   biometricsEnabled?: boolean;
   pomodoroFocusDuration?: number;
   pomodoroBreakDuration?: number;
@@ -43,6 +42,8 @@ export interface BackupData {
     savingsGoals: any[];
     debts: any[];
     notes: any[];
+    reminders: any[];
+    widgetConfigs: any[];
     settings: AppSettings;
   };
 }

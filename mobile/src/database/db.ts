@@ -10,6 +10,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState } from 'react-native';
 import {
   Account,
   Category,
@@ -27,6 +28,7 @@ import {
   Debt,
   Note,
   WidgetConfig,
+  Reminder,
 } from '../types';
 import {
   DEFAULT_ACCOUNTS,
@@ -51,16 +53,45 @@ export interface DatabaseTables {
   focusSessions: Record<string, FocusSession>;
   documents: Record<string, AppDocument>;
   widgetConfigs: Record<string, WidgetConfig>;
+  reminders: Record<string, Reminder>;
   savingsGoals: Record<string, SavingsGoal>;
   debts: Record<string, Debt>;
   notes: Record<string, Note>;
   settings: AppSettings;
 }
 
+export type TableName = keyof DatabaseTables;
+
+/** Receives the set of tables that changed since the previous notification. */
+export type DatabaseListener = (dirtyTables: Set<TableName>) => void;
+
+/**
+ * How long writes are coalesced before hitting AsyncStorage.
+ *
+ * Persisting means `JSON.stringify` of the ENTIRE database on the JS thread. Doing that
+ * once per write meant a single transaction edit serialised everything twice (once for the
+ * write, once for the balance reconcile that follows), and rapid actions — ticking several
+ * habits, typing in a form that saves per keystroke — multiplied it. Batching turns a
+ * burst of writes into one serialisation without changing what reads see, because reads
+ * come from the in-memory tables, not from storage.
+ */
+const PERSIST_DEBOUNCE_MS = 400;
+
 class DatabaseEngine {
   private tables: DatabaseTables;
-  private listeners: Set<() => void> = new Set();
+  private listeners: Set<DatabaseListener> = new Set();
   private isInitialized = false;
+
+  /** Pending-write bookkeeping for the batched persist. */
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private hasUnsavedChanges = false;
+  private isWriting = false;
+
+  /** Tables mutated since consumers last read the change set (see consumeDirtyTables). */
+  private dirtyTables: Set<TableName> = new Set();
+
+  /** Coalesces several writes in one tick into a single listener notification. */
+  private notifyScheduled = false;
 
   constructor() {
     this.tables = this.getEmptyDatabase();
@@ -93,6 +124,7 @@ class DatabaseEngine {
       focusSessions: {},
       documents: {},
       widgetConfigs: {},
+      reminders: {},
       savingsGoals: {},
       debts: {},
       notes: {},
@@ -112,6 +144,14 @@ class DatabaseEngine {
           ...parsed,
           settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) },
         };
+
+        // Anyone with saved data has plainly been using the app already — onboarding
+        // predates nothing for them. The flag went unread for a long time, so existing
+        // installs have it sitting at the `false` default and would otherwise be shown a
+        // first-run screen (and asked to pick a currency they already chose) after update.
+        if (parsed.settings?.hasCompletedOnboarding === undefined) {
+          this.tables.settings.hasCompletedOnboarding = true;
+        }
         // Run migration if needed
         await this.runMigrations();
       } else {
@@ -126,6 +166,15 @@ class DatabaseEngine {
     }
 
     this.isInitialized = true;
+
+    // Batched writes are only safe if something guarantees they land. Android can kill a
+    // backgrounded process without warning, so anything still pending is written out the
+    // moment the app stops being visible.
+    AppState.addEventListener('change', (state) => {
+      if (state !== 'active') void this.flush();
+    });
+
+    this.markAllDirty();
     this.notify();
   }
 
@@ -391,19 +440,87 @@ class DatabaseEngine {
     }
   }
 
+  /** Marks the database dirty and schedules a batched write. Never serialises inline. */
   private persist() {
-    AsyncStorage.setItem(DB_STORAGE_KEY, JSON.stringify(this.tables))
-      .then(() => AsyncStorage.setItem(DB_VERSION_KEY, String(CURRENT_SCHEMA_VERSION)))
-      .catch((e) => console.error('Failed to persist database to storage:', e));
+    this.hasUnsavedChanges = true;
+    if (this.persistTimer) return;
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null;
+      void this.flush();
+    }, PERSIST_DEBOUNCE_MS);
   }
 
-  public subscribe(listener: () => void): () => void {
+  /**
+   * Writes immediately if anything is pending.
+   *
+   * Called on the debounce timer and, crucially, whenever the app leaves the foreground —
+   * Android can kill a backgrounded process at any point, and an unflushed batch would be
+   * lost data. Awaiting this is how a caller guarantees durability.
+   */
+  public async flush(): Promise<void> {
+    if (!this.hasUnsavedChanges || this.isWriting) return;
+
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+    }
+
+    this.isWriting = true;
+    this.hasUnsavedChanges = false;
+    try {
+      const serialised = JSON.stringify(this.tables);
+      await AsyncStorage.setItem(DB_STORAGE_KEY, serialised);
+      await AsyncStorage.setItem(DB_VERSION_KEY, String(CURRENT_SCHEMA_VERSION));
+    } catch (e) {
+      // Put the flag back so the next write (or the next flush) retries rather than
+      // silently dropping the change.
+      this.hasUnsavedChanges = true;
+      console.error('Failed to persist database to storage:', e);
+    } finally {
+      this.isWriting = false;
+    }
+  }
+
+  public subscribe(listener: DatabaseListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
 
+  /** Marks tables as changed so subscribers can skip work for the ones that didn't. */
+  private markDirty(...tables: TableName[]) {
+    tables.forEach((t) => this.dirtyTables.add(t));
+  }
+
+  /** Everything changed — used for load, restore and reset, where per-table tracking
+   *  would be both wrong and pointless. */
+  private markAllDirty() {
+    (Object.keys(this.tables) as TableName[]).forEach((t) => this.dirtyTables.add(t));
+  }
+
+  /** Current change set, for a caller that needs it outside a notification. */
+  public getDirtyTables(): Set<TableName> {
+    return new Set(this.dirtyTables);
+  }
+
+  /**
+   * Notifies subscribers once per tick rather than once per write.
+   *
+   * Several repository calls legitimately write more than once for a single user action
+   * (creating a transaction, then reconciling account balances). Without coalescing, that
+   * is two full re-render passes across every screen for one tap.
+   */
   private notify() {
-    this.listeners.forEach((fn) => fn());
+    if (this.notifyScheduled) return;
+    this.notifyScheduled = true;
+    Promise.resolve().then(() => {
+      this.notifyScheduled = false;
+      // The change set is handed to every listener and cleared once they have all run —
+      // rather than being consumed by whoever reads it first, which would silently starve
+      // a second subscriber of the information it needs to update.
+      const dirty = this.dirtyTables;
+      this.dirtyTables = new Set();
+      this.listeners.forEach((fn) => fn(dirty));
+    });
   }
 
   /**
@@ -429,6 +546,7 @@ class DatabaseEngine {
       focusSessions: { ...t.focusSessions },
       documents: { ...t.documents },
       widgetConfigs: { ...t.widgetConfigs },
+      reminders: { ...t.reminders },
       savingsGoals: { ...t.savingsGoals },
       debts: { ...t.debts },
       notes: { ...t.notes },
@@ -444,14 +562,40 @@ class DatabaseEngine {
   public runTransaction<T>(callback: (db: DatabaseTables) => T): T {
     // Snapshot clone for rollback safety
     const snapshot = this.shallowCloneTables();
+
+    /**
+     * Records which tables the callback reached for.
+     *
+     * Mutations here always go through the table first — `db.tasks[id] = task` reads
+     * `tasks`, `db.accounts = {}` writes it — so trapping both `get` and `set` cannot
+     * miss a mutated table. It can over-report (a table that was only read is marked
+     * dirty), which costs one unnecessary re-render and is the safe direction to err:
+     * under-reporting would leave stale data on screen.
+     */
+    const touched = new Set<TableName>();
+    const tracked = new Proxy(this.tables, {
+      get: (target, prop: string) => {
+        touched.add(prop as TableName);
+        return target[prop as TableName];
+      },
+      set: (target, prop: string, value) => {
+        touched.add(prop as TableName);
+        (target as any)[prop] = value;
+        return true;
+      },
+    });
+
     try {
-      const result = callback(this.tables);
+      const result = callback(tracked as DatabaseTables);
+      this.markDirty(...touched);
       this.persist();
       this.notify();
       return result;
     } catch (error) {
       // Rollback
       this.tables = snapshot;
+      this.markAllDirty();
+      this.notify();
       console.error('Transaction rolled back due to error:', error);
       throw error;
     }
@@ -497,6 +641,9 @@ class DatabaseEngine {
       }
     });
 
+    // Writes this.tables.accounts directly rather than through runTransaction, so the
+    // dirty set has to be updated by hand here.
+    this.markDirty('accounts');
     this.persist();
     this.notify();
   }
@@ -522,6 +669,10 @@ class DatabaseEngine {
       db.savingsGoals = {};
       db.debts = {};
       db.notes = {};
+      // Cleared as well as repopulated: leaving these behind would mix reminders from the
+      // device's previous dataset into the restored one, with no way to tell them apart.
+      db.reminders = {};
+      db.widgetConfigs = {};
 
       (backup.data.accounts || []).forEach((a) => (db.accounts[a.id] = a));
       (backup.data.categories || []).forEach((c) => (db.categories[c.id] = c));
@@ -535,6 +686,15 @@ class DatabaseEngine {
       (backup.data.savingsGoals || []).forEach((g) => (db.savingsGoals[g.id] = g));
       (backup.data.debts || []).forEach((d) => (db.debts[d.id] = d));
       (backup.data.notes || []).forEach((n) => (db.notes[n.id] = n));
+      // `notificationIds` are handles belonging to the OS on the device that made the
+      // backup; they mean nothing here. Dropping them lets syncAllReminders() re-register
+      // each reminder cleanly instead of trying to cancel identifiers that never existed.
+      (backup.data.reminders || []).forEach(
+        (r: Reminder) => (db.reminders[r.id] = { ...r, notificationIds: [] })
+      );
+      (backup.data.widgetConfigs || []).forEach(
+        (w: WidgetConfig) => (db.widgetConfigs[w.id] = w)
+      );
       if (backup.data.settings) {
         db.settings = { ...DEFAULT_SETTINGS, ...backup.data.settings };
       }
@@ -555,6 +715,7 @@ class DatabaseEngine {
     const documents = this.tables.documents;
     const widgetConfigs = this.tables.widgetConfigs;
     this.tables = { ...this.getEmptyDatabase(), documents, widgetConfigs };
+    this.markAllDirty();
     this.persist();
     this.notify();
   }
@@ -567,6 +728,7 @@ class DatabaseEngine {
     const widgetConfigs = this.tables.widgetConfigs;
     this.tables = { ...this.getEmptyDatabase(), documents, widgetConfigs };
     this.seedInitialSampleData();
+    this.markAllDirty();
     this.persist();
     this.notify();
   }

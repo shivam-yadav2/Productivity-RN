@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
-import { CheckSquare, Sparkles, Timer, Plus, CheckCircle2, StickyNote, Search, X, NotebookPen } from 'lucide-react-native';
+import { CheckSquare, Sparkles, Timer, Plus, CheckCircle2, StickyNote, Search, X, NotebookPen, AlarmClock } from 'lucide-react-native';
 import { useDatabase } from '../context/DatabaseContext';
-import { Task, Habit, Note } from '../types';
+import { Task, Habit, Note, Reminder } from '../types';
 import { TaskItem } from '../components/productivity/TaskItem';
 import { TaskQuickAdd } from '../components/productivity/TaskQuickAdd';
 import { HabitCard } from '../components/productivity/HabitCard';
@@ -13,6 +13,7 @@ import { noteRepository } from '../database/repositories/noteRepo';
 import { audioService } from '../services/audioService';
 import { Button, buttonTextColor } from '../components/ui/Button';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { RemindersView } from '../components/productivity/RemindersView';
 import { FadeSwap } from '../components/ui/FadeSwap';
 import { cn } from '../utils/cn';
 import { ink } from '../utils/theme';
@@ -24,9 +25,18 @@ interface ProductivityScreenProps {
   onEditHabit: (habit: Habit) => void;
   onOpenNewNote: () => void;
   onSelectNote: (note: Note) => void;
+  onOpenNewReminder: () => void;
+  onSelectReminder: (reminder: Reminder) => void;
   initialFocusTask?: Task | null;
-  initialSubTab?: 'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES';
+  initialSubTab?: 'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES' | 'REMINDERS';
 }
+
+/**
+ * These lists render straight into the screen's ScrollView, so they can't use a FlatList
+ * (nesting a VirtualizedList inside a ScrollView of the same orientation breaks both).
+ * Capping the mounted rows with a "show more" step is the same trade the ledger makes.
+ */
+const LIST_PAGE_SIZE = 30;
 
 const taskFilters = [
   { key: 'ALL' as const, label: 'All Tasks' },
@@ -42,14 +52,22 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
   onEditHabit,
   onOpenNewNote,
   onSelectNote,
+  onOpenNewReminder,
+  onSelectReminder,
   initialFocusTask,
   initialSubTab,
 }) => {
   const { db } = useDatabase();
-  const [activeTab, setActiveTab] = useState<'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES'>(initialSubTab || 'TASKS');
+  const [activeTab, setActiveTab] = useState<'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES' | 'REMINDERS'>(initialSubTab || 'TASKS');
   const [taskFilter, setTaskFilter] = useState<'ALL' | 'TODAY' | 'HIGH' | 'COMPLETED'>('ALL');
   const [focusTask, setFocusTask] = useState<Task | null>(initialFocusTask || null);
   const [noteSearchQuery, setNoteSearchQuery] = useState('');
+  const [taskLimit, setTaskLimit] = useState(LIST_PAGE_SIZE);
+  const [noteLimit, setNoteLimit] = useState(LIST_PAGE_SIZE);
+
+  // A change of filter or query starts the page count over.
+  useEffect(() => setTaskLimit(LIST_PAGE_SIZE), [taskFilter]);
+  useEffect(() => setNoteLimit(LIST_PAGE_SIZE), [noteSearchQuery]);
 
   // This screen now stays mounted after its first visit (see App.tsx), so `initialFocusTask`
   // only seeding `focusTask` via useState's initializer isn't enough — that only runs once,
@@ -125,6 +143,7 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
     { key: 'HABITS' as const, label: `Habits (${habits.length})`, icon: Sparkles },
     { key: 'FOCUS' as const, label: 'Focus', icon: Timer },
     { key: 'NOTES' as const, label: `Notes (${notes.length})`, icon: StickyNote },
+    { key: 'REMINDERS' as const, label: 'Reminders', icon: AlarmClock },
   ];
 
   return (
@@ -154,6 +173,13 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
           <Button size="sm" onPress={onOpenNewNote}>
             <Plus size={16} color="#ffffff" />
             <Text className={cn('text-xs font-medium ml-1', buttonTextColor.primary)}>New Note</Text>
+          </Button>
+        )}
+
+        {activeTab === 'REMINDERS' && (
+          <Button size="sm" onPress={onOpenNewReminder}>
+            <Plus size={16} color="#ffffff" />
+            <Text className={cn('text-xs font-medium ml-1', buttonTextColor.primary)}>New Reminder</Text>
           </Button>
         )}
       </View>
@@ -200,9 +226,23 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
                 <Text className="text-xs text-ink-500 mt-2">No tasks in this filter view.</Text>
               </View>
             ) : (
-              filteredTasks.map((t, i) => (
+              filteredTasks.slice(0, taskLimit).map((t, i) => (
                 <TaskItem key={t.id} task={t} index={i} onClick={() => onSelectTask(t)} onStartFocus={() => handleStartFocus(t)} />
               ))
+            )}
+
+            {filteredTasks.length > taskLimit && (
+              <Pressable
+                onPress={() => setTaskLimit((c) => c + LIST_PAGE_SIZE)}
+                className="py-3 items-center rounded-2xl border border-ink-200 dark:border-ink-800 active:bg-ink-100 dark:active:bg-ink-800/60"
+              >
+                <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">
+                  Show more tasks
+                </Text>
+                <Text className="text-[10px] text-ink-400 mt-0.5">
+                  {taskLimit} of {filteredTasks.length}
+                </Text>
+              </Pressable>
             )}
           </View>
         </View>
@@ -273,7 +313,7 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
                 )}
               </View>
             ) : (
-              filteredNotes.map((n, i) => (
+              filteredNotes.slice(0, noteLimit).map((n, i) => (
                 <NoteItem
                   key={n.id}
                   note={n}
@@ -284,8 +324,29 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
                 />
               ))
             )}
+
+            {filteredNotes.length > noteLimit && (
+              <Pressable
+                onPress={() => setNoteLimit((c) => c + LIST_PAGE_SIZE)}
+                className="py-3 items-center rounded-2xl border border-ink-200 dark:border-ink-800 active:bg-ink-100 dark:active:bg-ink-800/60"
+              >
+                <Text className="text-xs font-semibold text-ink-700 dark:text-ink-300">
+                  Show more notes
+                </Text>
+                <Text className="text-[10px] text-ink-400 mt-0.5">
+                  {noteLimit} of {filteredNotes.length}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
+      )}
+
+      {activeTab === 'REMINDERS' && (
+        <RemindersView
+          onOpenNewReminder={onOpenNewReminder}
+          onSelectReminder={onSelectReminder}
+        />
       )}
       </FadeSwap>
     </ScrollView>

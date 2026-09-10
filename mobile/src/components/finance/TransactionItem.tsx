@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { Transaction } from '../../types';
-import { useDatabase } from '../../context/DatabaseContext';
+import { Transaction, Category, Account } from '../../types';
 import { formatCurrency } from '../../utils/currency';
 import { formatTimeDisplay } from '../../utils/date';
 import { IconHelper } from '../ui/IconHelper';
@@ -19,6 +18,18 @@ interface TransactionItemProps {
   /** Long lists opt rows out of the entrance animation past the first screenful —
    *  dozens of simultaneous Reanimated entries cost real frames on mount. */
   animate?: boolean;
+  /**
+   * Resolved by the parent rather than looked up here.
+   *
+   * This component is `React.memo`'d, but it used to call `useDatabase()` to find its
+   * category and accounts — and since every write hands down freshly-cloned tables, that
+   * subscription re-rendered every mounted row on every save, making the memo decorative.
+   * Taking them as props means a row only re-renders when its own data actually changes.
+   */
+  category?: Category;
+  sourceAccount?: Account;
+  destAccount?: Account;
+  currency: string;
 }
 
 export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
@@ -26,22 +37,17 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
   onPress,
   index = 0,
   animate = true,
+  category,
+  sourceAccount,
+  destAccount,
+  currency,
 }) => {
   const reduced = useReducedMotion();
   const skipAnimation = reduced || !animate;
-  const { db } = useDatabase();
 
   const isExpense = transaction.type === 'EXPENSE';
   const isIncome = transaction.type === 'INCOME';
   const isTransfer = transaction.type === 'TRANSFER';
-
-  const category = transaction.categoryId ? db.categories[transaction.categoryId] : undefined;
-  const sourceAccount = db.accounts[transaction.accountId];
-  const destAccount = transaction.destinationAccountId
-    ? db.accounts[transaction.destinationAccountId]
-    : undefined;
-
-  const currency = sourceAccount?.currency || db.settings.currency || 'INR';
 
   return (
     <Animated.View

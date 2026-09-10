@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, useColorScheme } from 'react-native';
 import { budgetService } from '../../services/budgetService';
 import { useDatabase } from '../../context/DatabaseContext';
@@ -17,7 +17,13 @@ interface BudgetCardProps {
 export const BudgetCard: React.FC<BudgetCardProps> = ({ onOpenBudgetManager }) => {
   const { db } = useDatabase();
   const isDark = useColorScheme() === 'dark';
-  const { overall, categories } = budgetService.getMonthlyBudgetStatuses();
+  // Recomputes spend against every budget by scanning the ledger. Keyed on the tables it
+  // reads so an unrelated write (a note, a task) no longer re-runs it.
+  const { overall, categories } = useMemo(
+    () => budgetService.getMonthlyBudgetStatuses(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [db.transactions, db.budgets, db.categories]
+  );
 
   const cardBg = isDark ? accent.orange.deep : accent.orange.bg;
   const cardBorder = accent.orange.base + '40';

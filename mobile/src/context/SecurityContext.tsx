@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { SecurityType } from '../types';
@@ -58,6 +59,48 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     })();
   }, []);
+
+  /**
+   * Auto-lock. `autoLockMinutes` existed in settings from the start but nothing ever
+   * implemented it, so the app only locked when you pressed the lock button.
+   *
+   * The timestamp is taken when the app leaves the foreground and compared on return,
+   * rather than running a timer: a background JS timer is not guaranteed to keep ticking
+   * (and would be killed outright if Android reclaims the process), so a phone left face
+   * down for an hour would come back unlocked.
+   */
+  const backgroundedAt = useRef<number | null>(null);
+
+  useEffect(() => {
+    const handleChange = (state: AppStateStatus) => {
+      if (state === 'background' || state === 'inactive') {
+        backgroundedAt.current = Date.now();
+        return;
+      }
+
+      if (state !== 'active' || backgroundedAt.current == null) return;
+
+      const awayMs = Date.now() - backgroundedAt.current;
+      backgroundedAt.current = null;
+
+      if (securityType === 'NONE' || !pinHash) return;
+
+      let minutes = 5;
+      try {
+        minutes = settingsRepository.get().autoLockMinutes ?? 5;
+      } catch {
+        // Fall back to the default if settings can't be read.
+      }
+
+      // 0 means "lock immediately whenever the app is left".
+      if (awayMs >= minutes * 60_000) {
+        setIsLocked(true);
+      }
+    };
+
+    const sub = AppState.addEventListener('change', handleChange);
+    return () => sub.remove();
+  }, [securityType, pinHash]);
 
   const unlockWithPin = async (pin: string): Promise<boolean> => {
     if (!pinHash) {

@@ -34,6 +34,14 @@ interface SettingsViewProps {
   onOpenCategoriesManager: () => void;
 }
 
+const AUTO_LOCK_OPTIONS = [
+  { label: 'Immediately', value: '0' },
+  { label: 'After 1 minute', value: '1' },
+  { label: 'After 5 minutes', value: '5' },
+  { label: 'After 15 minutes', value: '15' },
+  { label: 'After 1 hour', value: '60' },
+];
+
 const CURRENCY_OPTIONS = [
   { label: 'INR (₹ Indian Rupee)', value: 'INR' },
   { label: 'USD ($ US Dollar)', value: 'USD' },
@@ -112,8 +120,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  const handleFactoryReset = () => {
-    backupService.resetDatabase();
+  const handleFactoryReset = async () => {
+    await backupService.resetDatabase();
     setShowResetConfirm(false);
     audioService.triggerHaptic('medium');
   };
@@ -155,11 +163,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <Text className="text-xs font-semibold text-ink-800 dark:text-ink-200">Haptic Feedback</Text>
           </View>
           <Switch
-            value={db.settings.hapticEnabled ?? db.settings.hapticsEnabled ?? true}
-            onValueChange={(v) => {
-              handleUpdateSetting('hapticEnabled', v);
-              handleUpdateSetting('hapticsEnabled', v);
-            }}
+            value={db.settings.hapticEnabled !== false}
+            onValueChange={(v) => handleUpdateSetting('hapticEnabled', v)}
           />
         </View>
       </Card>
@@ -230,6 +235,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           )}
         </View>
 
+        {hasPin && (
+          <View className="py-3 border-b border-ink-100 dark:border-ink-800">
+            <Select
+              label="Auto-lock after"
+              value={String(db.settings.autoLockMinutes ?? 5)}
+              onChange={(v) => handleUpdateSetting('autoLockMinutes', Number(v))}
+              options={AUTO_LOCK_OPTIONS}
+            />
+            <Text className="text-[10px] text-ink-400 mt-1.5">
+              Locks when you return to the app after being away this long.
+            </Text>
+          </View>
+        )}
+
         {showPinSetup && (
           <View className="p-3 mt-3 bg-ink-50 dark:bg-ink-800/60 rounded-xl border border-ink-200 dark:border-ink-700 flex-col gap-2">
             <Text className="text-xs font-medium text-ink-700 dark:text-ink-300">Enter a 4-digit PIN:</Text>
@@ -287,6 +306,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <Text className="text-xs text-ink-600 dark:text-ink-400 mb-3">
           Your data never leaves your device. Export regular backups to retain full offline ownership.
         </Text>
+
+        <View className="flex-row items-start gap-2 p-2.5 mb-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
+          <AlertTriangle size={13} color="#d97706" />
+          <Text className="text-[11px] text-amber-800 dark:text-amber-300 flex-1">
+            Backups cover everything except your saved documents — those are real files on
+            this device, not data, so they aren't inside the JSON. Copy them off separately
+            before switching phones.
+          </Text>
+        </View>
 
         <View className="flex-row gap-2">
           <View className="flex-1">

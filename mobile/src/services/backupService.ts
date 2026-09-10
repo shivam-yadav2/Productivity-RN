@@ -6,6 +6,7 @@ import { dbEngine } from '../database/db';
 import { BackupData } from '../types';
 import { toMajorUnits } from '../utils/currency';
 import { getTodayDateString } from '../utils/date';
+import { unscheduleAllReminders, syncAllReminders } from './reminderService';
 
 async function writeAndShare(filename: string, content: string, mimeType: string): Promise<void> {
   const file = new File(Paths.cache, filename);
@@ -42,6 +43,8 @@ export const backupService = {
         savingsGoals: Object.values(db.savingsGoals),
         debts: Object.values(db.debts),
         notes: Object.values(db.notes),
+        reminders: Object.values(db.reminders),
+        widgetConfigs: Object.values(db.widgetConfigs),
         settings: db.settings,
       },
     };
@@ -103,7 +106,7 @@ export const backupService = {
     await writeAndShare(`transactions_export_${getTodayDateString()}.csv`, csvContent, 'text/csv');
   },
 
-  importBackupJSON(jsonString: string): { success: boolean; message: string } {
+  async importBackupJSON(jsonString: string): Promise<{ success: boolean; message: string }> {
     try {
       const parsed = JSON.parse(jsonString);
 
@@ -116,7 +119,16 @@ export const backupService = {
         throw new Error('Invalid backup schema: Accounts and transactions arrays are required.');
       }
 
+      // Alarms and scheduled notifications live in Android, not in this database. The
+      // reminders about to be replaced own OS registrations that must be released first,
+      // or they keep ringing for entries the restore has already deleted.
+      await unscheduleAllReminders().catch(() => {});
+
       dbEngine.restoreFromBackup(parsed as BackupData);
+
+      // Re-register whatever the backup brought with it, under this device's own ids.
+      await syncAllReminders().catch(() => {});
+
       return { success: true, message: 'Backup successfully restored with full integrity.' };
     } catch (error: any) {
       console.error('Failed to import backup:', error);
@@ -127,7 +139,7 @@ export const backupService = {
     }
   },
 
-  importJSON(jsonString: string): { success: boolean; message: string } {
+  importJSON(jsonString: string): Promise<{ success: boolean; message: string }> {
     return this.importBackupJSON(jsonString);
   },
 
@@ -143,14 +155,21 @@ export const backupService = {
       }
       const file = new File(result.assets[0].uri);
       const jsonString = await file.text();
-      return this.importBackupJSON(jsonString);
+      return await this.importBackupJSON(jsonString);
     } catch (error: any) {
       return { success: false, message: error?.message || 'Failed to read backup file.' };
     }
   },
 
-  /** Erases all user records. Restores factory accounts/categories but no demo rows. */
-  resetDatabase(): void {
+  /**
+   * Erases all user records. Restores factory accounts/categories but no demo rows.
+   *
+   * Reminders are cancelled with the OS first: alarms and scheduled notifications live in
+   * Android, not in this database, so dropping the rows on their own would leave orphaned
+   * alarms that still ring for reminders the user can no longer see or turn off.
+   */
+  async resetDatabase(): Promise<void> {
+    await unscheduleAllReminders().catch(() => {});
     dbEngine.resetAllData();
   },
 };

@@ -332,6 +332,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       transaction={tx}
                       index={group.startIndex + i}
                       animate={group.startIndex + i < ANIMATE_FIRST_N}
+                      category={tx.categoryId ? db.categories[tx.categoryId] : undefined}
+                      sourceAccount={db.accounts[tx.accountId]}
+                      destAccount={
+                        tx.destinationAccountId ? db.accounts[tx.destinationAccountId] : undefined
+                      }
+                      currency={
+                        db.accounts[tx.accountId]?.currency || db.settings.currency || 'INR'
+                      }
                       onPress={() => onSelectTransaction(tx)}
                     />
                   </View>

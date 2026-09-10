@@ -59,6 +59,10 @@ export function SegmentedControl<T extends string>({
   const mutedText = ink[500];
   const py = size === 'sm' ? 'py-1.5' : 'py-2';
 
+  // Past four segments each one is narrow enough that the icon crowds out the label and
+  // the text truncates. The label carries the meaning, so the icon is what gives way.
+  const showIcons = count <= 4;
+
   return (
     <View
       onLayout={(e: LayoutChangeEvent) => setTrackWidth(e.nativeEvent.layout.width)}
@@ -101,7 +105,7 @@ export function SegmentedControl<T extends string>({
             }}
             className={cn('flex-1 flex-row items-center justify-center gap-1.5 rounded-xl', py)}
           >
-            {Icon && <Icon size={14} color={isActive ? activeText : mutedText} />}
+            {showIcons && Icon && <Icon size={14} color={isActive ? activeText : mutedText} />}
             <Text
               numberOfLines={1}
               className={cn(

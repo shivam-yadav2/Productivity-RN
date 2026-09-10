@@ -11,6 +11,23 @@ class AudioService {
   private successTonePlayer: AudioPlayer | null = null;
   private timerBellPlayer: AudioPlayer | null = null;
 
+  /**
+   * Mirrors the Settings toggles.
+   *
+   * These are plain fields rather than a `dbEngine` read because this service is called
+   * from ~76 places including tap handlers, and reaching into the database on every tap
+   * to re-check a boolean would be wasteful. `DatabaseContext` pushes the current values
+   * in on every change instead (see syncFromSettings).
+   */
+  private soundEnabled = true;
+  private hapticEnabled = true;
+
+  /** Called whenever settings change so playback honours the user's choice. */
+  public syncFromSettings(settings: { soundEnabled?: boolean; hapticEnabled?: boolean }) {
+    this.soundEnabled = settings.soundEnabled !== false;
+    this.hapticEnabled = settings.hapticEnabled !== false;
+  }
+
   private getSoftClickPlayer(): AudioPlayer {
     if (!this.softClickPlayer) {
       this.softClickPlayer = createAudioPlayer(require('../../assets/sounds/soft-click.wav'));
@@ -33,6 +50,7 @@ class AudioService {
   }
 
   public playSoftClick() {
+    if (!this.soundEnabled) return;
     try {
       const player = this.getSoftClickPlayer();
       player.seekTo(0);
@@ -43,6 +61,7 @@ class AudioService {
   }
 
   public playSuccessTone() {
+    if (!this.soundEnabled) return;
     try {
       const player = this.getSuccessTonePlayer();
       player.seekTo(0);
@@ -53,6 +72,7 @@ class AudioService {
   }
 
   public playTimerBell() {
+    if (!this.soundEnabled) return;
     try {
       const player = this.getTimerBellPlayer();
       player.seekTo(0);
@@ -63,6 +83,7 @@ class AudioService {
   }
 
   public triggerHaptic(type: 'light' | 'medium' | 'success' = 'light') {
+    if (!this.hapticEnabled) return;
     try {
       if (type === 'light') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       else if (type === 'medium') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

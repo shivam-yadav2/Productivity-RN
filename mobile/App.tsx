@@ -12,6 +12,7 @@ import {
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Wallet, CheckSquare, FolderOpen, Settings, Lock, Moon, Sun, Search } from 'lucide-react-native';
 import { DatabaseProvider, useDatabase } from './src/context/DatabaseContext';
+import { dbEngine } from './src/database/db';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SecurityProvider, useSecurity } from './src/context/SecurityContext';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -20,9 +21,11 @@ import { ProductivityScreen } from './src/screens/ProductivityScreen';
 import { DocumentsScreen } from './src/screens/DocumentsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { PinLockScreen } from './src/components/security/PinLockScreen';
+import { OnboardingScreen } from './src/components/onboarding/OnboardingScreen';
 import { Logo } from './src/components/ui/Logo';
 import { TabBarButton } from './src/components/ui/TabBarButton';
 import { ScreenBoot } from './src/components/ui/ScreenBoot';
+import { ErrorBoundary } from './src/components/ui/ErrorBoundary';
 import {
   HomeSkeleton,
   MoneySkeleton,
@@ -44,11 +47,14 @@ import { DebtsManagerModal } from './src/components/finance/DebtsManagerModal';
 import { TaskDetailModal } from './src/components/productivity/TaskDetailModal';
 import { HabitFormModal } from './src/components/productivity/HabitFormModal';
 import { NoteEditorModal } from './src/components/productivity/NoteEditorModal';
+import { ReminderFormModal } from './src/components/productivity/ReminderFormModal';
 import { GlobalSearchOverlay } from './src/components/search/GlobalSearchOverlay';
 import { noteRepository } from './src/database/repositories/noteRepo';
+import { syncAllReminders } from './src/services/reminderService';
+import { postDueRecurringTransactions } from './src/services/recurringService';
 import { ink, inkMuted } from './src/utils/theme';
 
-import { Transaction, Task, Habit, Note } from './src/types';
+import { Transaction, Task, Habit, Note, Reminder } from './src/types';
 import { cn } from './src/utils/cn';
 import { shareDocument } from './src/services/documentStorage';
 import { SearchResult } from './src/services/searchService';
@@ -60,11 +66,23 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 type TabType = 'HOME' | 'MONEY' | 'PRODUCTIVITY' | 'DOCUMENTS' | 'SETTINGS';
 
 function MainApp() {
-  useDatabase();
+  const { isReady } = useDatabase();
   const { theme, resolvedTheme, toggleTheme } = useTheme();
   const { isLocked, hasPin, lockApp } = useSecurity();
   const insets = useSafeAreaInsets();
   const isDark = resolvedTheme === 'dark';
+
+  // Seeded once from the database rather than read live, so finishing onboarding doesn't
+  // depend on a re-render arriving before the flag is checked again.
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    if (!isReady) return;
+    try {
+      setShowOnboarding(!dbEngine.getTables().settings.hasCompletedOnboarding);
+    } catch {
+      setShowOnboarding(false);
+    }
+  }, [isReady]);
 
   const [activeTab, setActiveTab] = useState<TabType>('HOME');
   // Screens mount once on first visit and then stay mounted (just hidden), instead of being
@@ -89,6 +107,7 @@ function MainApp() {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -96,13 +115,84 @@ function MainApp() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
   const [focusTask, setFocusTask] = useState<Task | null>(null);
 
+  // Widgets deep-link in via `personalapp://<route>` (tapping a home-screen widget opens
+  // the app through this, not through any in-app navigation) — a plain string strip is
+  // used instead of the URL constructor since custom schemes parse inconsistently across
+  // engines for the "host" part of a non-http URL.
+  const handleDeepLink = useCallback((url: string | null) => {
+    if (!url) return;
+    const route = url.replace(/^[a-z]+:\/\//i, '');
+    switch (route) {
+      case 'money':
+        setActiveTab('MONEY');
+        break;
+      case 'habits':
+        setActiveTab('PRODUCTIVITY');
+        break;
+      case 'tasks':
+        setActiveTab('PRODUCTIVITY');
+        break;
+      case 'add-expense':
+        setEditingTransaction(null);
+        setIsExpenseModalOpen(true);
+        break;
+      case 'add-task':
+        setSelectedTask(null);
+        setIsTaskModalOpen(true);
+        break;
+      case 'add-note':
+        setSelectedNote(null);
+        setIsNoteModalOpen(true);
+        break;
+    }
+  }, []);
+
+  // Repeating alarms are expanded into a fixed run of individual OS alarms, so they need
+  // topping up as those get consumed; one-offs that already fired get cleaned up here too.
+  useEffect(() => {
+    if (!isReady) return;
+    syncAllReminders().catch(() => {});
+  }, [isReady]);
+
+  // Recurring rules post the occurrences that came due while the app was closed, then
+  // move their next due date forward. Runs once the database is loaded, before any screen
+  // reads balances, so the ledger and account totals agree from the first frame.
+  useEffect(() => {
+    if (!isReady) return;
+    try {
+      postDueRecurringTransactions();
+    } catch {
+      // Never block startup on catch-up posting.
+    }
+  }, [isReady]);
+
+  useEffect(() => {
+    Linking.getInitialURL().then(handleDeepLink);
+    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
+    return () => sub.remove();
+  }, [handleDeepLink]);
+
+  // Every hook above this line runs unconditionally. The early returns below skip most
+  // of the tree, so anything hook-shaped placed after them would be skipped too on those
+  // renders — which React reports as "rendered fewer hooks than expected" and treats as a
+  // crash. This bit the PIN lock path before onboarding ever existed.
   if (isLocked) {
     return (
       <>
         <StatusBar style="light" />
         <PinLockScreen />
+      </>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <>
+        <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
+        <OnboardingScreen onDone={() => setShowOnboarding(false)} />
       </>
     );
   }
@@ -154,46 +244,19 @@ function MainApp() {
       setSelectedNote(result.item);
       setIsNoteModalOpen(true);
       setActiveTab('PRODUCTIVITY');
+    } else if (result.type === 'goal') {
+      setActiveTab('MONEY');
+      setIsGoalsModalOpen(true);
+    } else if (result.type === 'debt') {
+      setActiveTab('MONEY');
+      setIsDebtsModalOpen(true);
+    } else if (result.type === 'reminder') {
+      setSelectedReminder(result.item);
+      setIsReminderModalOpen(true);
+      setActiveTab('PRODUCTIVITY');
     }
   };
 
-  // Widgets deep-link in via `personalapp://<route>` (tapping a home-screen widget opens
-  // the app through this, not through any in-app navigation) — a plain string strip is
-  // used instead of the URL constructor since custom schemes parse inconsistently across
-  // engines for the "host" part of a non-http URL.
-  const handleDeepLink = useCallback((url: string | null) => {
-    if (!url) return;
-    const route = url.replace(/^[a-z]+:\/\//i, '');
-    switch (route) {
-      case 'money':
-        setActiveTab('MONEY');
-        break;
-      case 'habits':
-        setActiveTab('PRODUCTIVITY');
-        break;
-      case 'tasks':
-        setActiveTab('PRODUCTIVITY');
-        break;
-      case 'add-expense':
-        setEditingTransaction(null);
-        setIsExpenseModalOpen(true);
-        break;
-      case 'add-task':
-        setSelectedTask(null);
-        setIsTaskModalOpen(true);
-        break;
-      case 'add-note':
-        setSelectedNote(null);
-        setIsNoteModalOpen(true);
-        break;
-    }
-  }, []);
-
-  useEffect(() => {
-    Linking.getInitialURL().then(handleDeepLink);
-    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
-    return () => sub.remove();
-  }, [handleDeepLink]);
 
   const tabs: { key: TabType; label: string; icon: typeof Home }[] = [
     { key: 'HOME', label: 'Today', icon: Home },
@@ -251,6 +314,7 @@ function MainApp() {
       <View className="flex-1 px-4 pt-3" style={{ paddingBottom: insets.bottom + 76 }}>
         {mountedTabs.has('HOME') && (
         <View style={{ flex: 1, display: activeTab === 'HOME' ? 'flex' : 'none' }}>
+          <ErrorBoundary label="Home">
           <ScreenBoot fallback={<HomeSkeleton />}>
           <HomeScreen
             onNavigateToMoney={() => handleTabChange('MONEY')}
@@ -279,11 +343,13 @@ function MainApp() {
             }}
           />
           </ScreenBoot>
+          </ErrorBoundary>
         </View>
         )}
 
         {mountedTabs.has('MONEY') && (
         <View style={{ flex: 1, display: activeTab === 'MONEY' ? 'flex' : 'none' }}>
+          <ErrorBoundary label="Finance">
           <ScreenBoot fallback={<MoneySkeleton />}>
           <MoneyScreen
             onOpenAddExpense={() => {
@@ -307,11 +373,13 @@ function MainApp() {
             onSelectTransaction={(tx) => setSelectedTransaction(tx)}
           />
           </ScreenBoot>
+          </ErrorBoundary>
         </View>
         )}
 
         {mountedTabs.has('PRODUCTIVITY') && (
         <View style={{ flex: 1, display: activeTab === 'PRODUCTIVITY' ? 'flex' : 'none' }}>
+          <ErrorBoundary label="Productivity">
           <ScreenBoot fallback={<ProductivitySkeleton />}>
           <ProductivityScreen
             onSelectTask={(task) => {
@@ -339,27 +407,40 @@ function MainApp() {
               setSelectedNote(note);
               setIsNoteModalOpen(true);
             }}
+            onOpenNewReminder={() => {
+              setSelectedReminder(null);
+              setIsReminderModalOpen(true);
+            }}
+            onSelectReminder={(reminder) => {
+              setSelectedReminder(reminder);
+              setIsReminderModalOpen(true);
+            }}
           />
           </ScreenBoot>
+          </ErrorBoundary>
         </View>
         )}
 
         {mountedTabs.has('DOCUMENTS') && (
         <View style={{ flex: 1, display: activeTab === 'DOCUMENTS' ? 'flex' : 'none' }}>
+          <ErrorBoundary label="Documents">
           <ScreenBoot fallback={<DocumentsSkeleton />}>
             <DocumentsScreen />
           </ScreenBoot>
+          </ErrorBoundary>
         </View>
         )}
 
         {mountedTabs.has('SETTINGS') && (
         <View style={{ flex: 1, display: activeTab === 'SETTINGS' ? 'flex' : 'none' }}>
+          <ErrorBoundary label="Settings">
           <ScreenBoot fallback={<SettingsSkeleton />}>
             <SettingsScreen
               onOpenAccountsManager={() => setIsAccountsModalOpen(true)}
               onOpenCategoriesManager={() => setIsCategoriesModalOpen(true)}
             />
           </ScreenBoot>
+          </ErrorBoundary>
         </View>
         )}
       </View>
@@ -490,6 +571,15 @@ function MainApp() {
         }
       />
 
+      <ReminderFormModal
+        reminder={selectedReminder}
+        isOpen={isReminderModalOpen}
+        onClose={() => {
+          setIsReminderModalOpen(false);
+          setSelectedReminder(null);
+        }}
+      />
+
       <GlobalSearchOverlay
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -518,6 +608,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
+        <ErrorBoundary>
         <ThemeProvider>
           <DatabaseProvider>
             <SecurityProvider>
@@ -525,6 +616,7 @@ export default function App() {
             </SecurityProvider>
           </DatabaseProvider>
         </ThemeProvider>
+        </ErrorBoundary>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

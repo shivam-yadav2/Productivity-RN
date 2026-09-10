@@ -20,6 +20,9 @@ const TYPE_LABEL: Record<SearchResult['type'], string> = {
   habit: 'Habit',
   document: 'Document',
   note: 'Note',
+  goal: 'Goal',
+  debt: 'Debt',
+  reminder: 'Reminder',
 };
 
 function resultIconName(result: SearchResult): string {
@@ -34,6 +37,12 @@ function resultIconName(result: SearchResult): string {
       return getDocumentIconName(result.item.mimeType, result.item.originalFileName);
     case 'note':
       return 'StickyNote';
+    case 'goal':
+      return 'PiggyBank';
+    case 'debt':
+      return 'Landmark';
+    case 'reminder':
+      return 'AlarmClock';
   }
 }
 

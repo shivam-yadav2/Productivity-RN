@@ -1,0 +1,7 @@
+{
+  "name": "expo-alarm",
+  "version": "1.0.0",
+  "description": "Local native module: exact alarms with a full-screen ringing screen (Android only).",
+  "main": "index.ts",
+  "private": true
+}
