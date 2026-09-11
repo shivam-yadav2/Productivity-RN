@@ -4,6 +4,7 @@ import * as Crypto from 'expo-crypto';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { SecurityType } from '../types';
 import { settingsRepository } from '../database/repositories/settingsRepo';
+import { dbEngine } from '../database/db';
 import { audioService } from '../services/audioService';
 
 interface SecurityContextType {
@@ -37,17 +38,33 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [isBiometricsAvailable, setIsBiometricsAvailable] = useState<boolean>(false);
 
+  const hasHydrated = useRef(false);
+
+  /**
+   * Load the saved PIN once the database is actually available.
+   *
+   * Reading this on mount was the bug behind "my PIN disappears after restarting":
+   * `dbEngine.init()` is async and this provider mounts before it resolves, so the read
+   * saw an empty database, found no `pinHash`, and left the app unprotected — and nothing
+   * ever re-read it. Subscribing means the real values arrive the moment they load.
+   */
   useEffect(() => {
-    try {
-      const settings = settingsRepository.get();
-      setSecType(settings.securityType || 'NONE');
-      setPinHash(settings.pinHash);
-      if (settings.securityType !== 'NONE' && settings.pinHash) {
-        setIsLocked(true);
+    const hydrate = () => {
+      if (hasHydrated.current) return;
+      try {
+        const settings = settingsRepository.get();
+        hasHydrated.current = true;
+        setSecType(settings.securityType || 'NONE');
+        setPinHash(settings.pinHash);
+        if (settings.securityType !== 'NONE' && settings.pinHash) {
+          setIsLocked(true);
+        }
+      } catch {
+        // default
       }
-    } catch {
-      // default
-    }
+    };
+
+    const unsubscribe = dbEngine.subscribe(hydrate);
 
     (async () => {
       try {
@@ -58,6 +75,8 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setIsBiometricsAvailable(false);
       }
     })();
+
+    return unsubscribe;
   }, []);
 
   /**

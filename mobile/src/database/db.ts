@@ -77,6 +77,16 @@ export type DatabaseListener = (dirtyTables: Set<TableName>) => void;
  */
 const PERSIST_DEBOUNCE_MS = 400;
 
+/**
+ * Tables written straight through, skipping the batch.
+ *
+ * These are changed rarely (so there is no throughput to protect) and are exactly what a
+ * user changes and then immediately force-closes the app to check — a PIN, a theme, an
+ * alarm. Android can kill a swiped-away process without delivering any lifecycle event,
+ * so a debounced write of these is a write that can simply vanish.
+ */
+const WRITE_THROUGH_TABLES: TableName[] = ['settings', 'reminders', 'widgetConfigs'];
+
 class DatabaseEngine {
   private tables: DatabaseTables;
   private listeners: Set<DatabaseListener> = new Set();
@@ -86,6 +96,7 @@ class DatabaseEngine {
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
   private hasUnsavedChanges = false;
   private isWriting = false;
+  private writeAgainWhenDone = false;
 
   /** Tables mutated since consumers last read the change set (see consumeDirtyTables). */
   private dirtyTables: Set<TableName> = new Set();
@@ -440,9 +451,15 @@ class DatabaseEngine {
     }
   }
 
-  /** Marks the database dirty and schedules a batched write. Never serialises inline. */
+  /** Marks the database dirty and schedules a batched write (or writes through). */
   private persist() {
     this.hasUnsavedChanges = true;
+
+    if (WRITE_THROUGH_TABLES.some((t) => this.dirtyTables.has(t))) {
+      void this.flush();
+      return;
+    }
+
     if (this.persistTimer) return;
     this.persistTimer = setTimeout(() => {
       this.persistTimer = null;
@@ -458,24 +475,38 @@ class DatabaseEngine {
    * lost data. Awaiting this is how a caller guarantees durability.
    */
   public async flush(): Promise<void> {
-    if (!this.hasUnsavedChanges || this.isWriting) return;
-
     if (this.persistTimer) {
       clearTimeout(this.persistTimer);
       this.persistTimer = null;
     }
 
+    // A write arriving mid-write must not be dropped. Rather than returning early and
+    // leaving the change stranded until some later persist happens to pick it up, the
+    // in-flight call loops and writes again.
+    if (this.isWriting) {
+      this.writeAgainWhenDone = true;
+      return;
+    }
+
     this.isWriting = true;
-    this.hasUnsavedChanges = false;
     try {
-      const serialised = JSON.stringify(this.tables);
-      await AsyncStorage.setItem(DB_STORAGE_KEY, serialised);
-      await AsyncStorage.setItem(DB_VERSION_KEY, String(CURRENT_SCHEMA_VERSION));
-    } catch (e) {
-      // Put the flag back so the next write (or the next flush) retries rather than
-      // silently dropping the change.
-      this.hasUnsavedChanges = true;
-      console.error('Failed to persist database to storage:', e);
+      do {
+        this.writeAgainWhenDone = false;
+        if (!this.hasUnsavedChanges) break;
+        this.hasUnsavedChanges = false;
+
+        try {
+          const serialised = JSON.stringify(this.tables);
+          await AsyncStorage.setItem(DB_STORAGE_KEY, serialised);
+          await AsyncStorage.setItem(DB_VERSION_KEY, String(CURRENT_SCHEMA_VERSION));
+        } catch (e) {
+          // Put the flag back so a later write or flush retries instead of silently
+          // dropping the change, and stop looping so a failing store can't spin.
+          this.hasUnsavedChanges = true;
+          console.error('Failed to persist database to storage:', e);
+          break;
+        }
+      } while (this.writeAgainWhenDone || this.hasUnsavedChanges);
     } finally {
       this.isWriting = false;
     }
