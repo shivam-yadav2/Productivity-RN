@@ -7,6 +7,11 @@ import { focusRepository } from '../../database/repositories/focusRepo';
 import { getTodayDateString, getCurrentTimeString } from '../../utils/date';
 import { audioService } from '../../services/audioService';
 import { notificationService, setFocusSessionActive, FOCUS_END_CATEGORY } from '../../services/notificationService';
+import {
+  getActiveFocusSession,
+  setActiveFocusSession,
+  updateActiveFocusSession,
+} from './focusSession';
 import { Select } from '../ui/Select';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { AnimatedBar } from '../ui/AnimatedBar';
@@ -56,6 +61,23 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
     }
   }, [initialTask]);
 
+  // Pick a running session back up. Focus is opened and closed as a screen now, so this
+  // component is mounted and unmounted freely while a session continues underneath it.
+  useEffect(() => {
+    const session = getActiveFocusSession();
+    if (!session) return;
+
+    endAtMsRef.current = session.endAtMs;
+    pendingEndNotificationId.current = session.notificationId;
+    setMode(session.mode);
+    setSessionStartTime(session.startedAtTime);
+    setTimeLeft(Math.max(0, Math.round((session.endAtMs - Date.now()) / 1000)));
+    setIsRunning(true);
+    activateKeepAwakeAsync(KEEP_AWAKE_TAG);
+    setFocusSessionActive(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const clearEndNotification = () => {
     if (pendingEndNotificationId.current) {
       notificationService.cancel(pendingEndNotificationId.current);
@@ -65,6 +87,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
 
   const stopRunningState = () => {
     setIsRunning(false);
+    setActiveFocusSession(null);
     deactivateKeepAwake(KEEP_AWAKE_TAG);
     setFocusSessionActive(false);
   };
@@ -138,8 +161,12 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
   // Deactivate keep-awake if this screen unmounts mid-session (e.g. navigating away).
   useEffect(() => {
     return () => {
-      deactivateKeepAwake(KEEP_AWAKE_TAG);
-      setFocusSessionActive(false);
+      // Only release these if nothing is still running — otherwise closing the focus
+      // screen would drop the wake lock and un-silence notifications mid-session.
+      if (!getActiveFocusSession()) {
+        deactivateKeepAwake(KEEP_AWAKE_TAG);
+        setFocusSessionActive(false);
+      }
     };
   }, []);
 
@@ -159,12 +186,22 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({ initialTask }) => {
       const label = mode === 'FOCUS' ? 'Focus session' : mode === 'SHORT_BREAK' ? 'Short break' : 'Long break';
       const identifier = `focusend_${Date.now()}`;
       const endDate = new Date(endAtMsRef.current);
+
+      setActiveFocusSession({
+        mode,
+        endAtMs: endAtMsRef.current,
+        taskId: selectedTask?.id,
+        startedAtTime: getCurrentTimeString(),
+        notificationId: null,
+      });
+
       notificationService
         .scheduleAt(identifier, `${label} complete`, "Time's up — nice work.", endDate, {
           category: FOCUS_END_CATEGORY,
         })
         .then((id) => {
           pendingEndNotificationId.current = id;
+          updateActiveFocusSession({ notificationId: id });
         });
     }
   };

@@ -26,14 +26,29 @@ export const ScreenBoot: React.FC<ScreenBootProps> = ({ fallback, children }) =>
 
   useEffect(() => {
     let raf2 = 0;
+    let settled = false;
+    const reveal = () => {
+      if (settled) return;
+      settled = true;
+      setDeferred(true);
+    };
+
     // Two frames: the first schedules after the current render commits, the second runs
     // once the skeleton has actually been painted.
     const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => setDeferred(true));
+      raf2 = requestAnimationFrame(reveal);
     });
+
+    // Guaranteed fallback. requestAnimationFrame does not fire while a page or app is not
+    // actually painting — a backgrounded launch, an inactive window — and without this the
+    // screen would sit on its skeleton indefinitely waiting for a frame that never comes.
+    // Whichever path arrives first wins; the other is a no-op.
+    const safety = setTimeout(reveal, 250);
+
     return () => {
       cancelAnimationFrame(raf1);
       if (raf2) cancelAnimationFrame(raf2);
+      clearTimeout(safety);
     };
   }, []);
 

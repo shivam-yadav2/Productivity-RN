@@ -1,14 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
-import { CheckSquare, Sparkles, Timer, Plus, CheckCircle2, StickyNote, Search, X, NotebookPen, AlarmClock } from 'lucide-react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert, useColorScheme } from 'react-native';
+import { CheckSquare, Sparkles, Plus, CheckCircle2, StickyNote, Search, X, NotebookPen, AlarmClock } from 'lucide-react-native';
 import { useDatabase } from '../context/DatabaseContext';
 import { Task, Habit, Note, Reminder } from '../types';
 import { TaskItem } from '../components/productivity/TaskItem';
 import { TaskQuickAdd } from '../components/productivity/TaskQuickAdd';
 import { HabitCard } from '../components/productivity/HabitCard';
 import { NoteItem } from '../components/productivity/NoteItem';
-import { FocusTimer } from '../components/productivity/FocusTimer';
-import { FocusAnalytics } from '../components/productivity/FocusAnalytics';
+import { FocusEntryButton } from '../components/productivity/FocusEntryButton';
 import { noteRepository } from '../database/repositories/noteRepo';
 import { audioService } from '../services/audioService';
 import { Button, buttonTextColor } from '../components/ui/Button';
@@ -25,10 +24,10 @@ interface ProductivityScreenProps {
   onEditHabit: (habit: Habit) => void;
   onOpenNewNote: () => void;
   onSelectNote: (note: Note) => void;
+  onStartFocus: (task: Task | null) => void;
   onOpenNewReminder: () => void;
   onSelectReminder: (reminder: Reminder) => void;
-  initialFocusTask?: Task | null;
-  initialSubTab?: 'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES' | 'REMINDERS';
+  initialSubTab?: 'TASKS' | 'HABITS' | 'NOTES' | 'REMINDERS';
 }
 
 /**
@@ -52,15 +51,15 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
   onEditHabit,
   onOpenNewNote,
   onSelectNote,
+  onStartFocus,
   onOpenNewReminder,
   onSelectReminder,
-  initialFocusTask,
   initialSubTab,
 }) => {
   const { db } = useDatabase();
-  const [activeTab, setActiveTab] = useState<'TASKS' | 'HABITS' | 'FOCUS' | 'NOTES' | 'REMINDERS'>(initialSubTab || 'TASKS');
+  const isDark = useColorScheme() === 'dark';
+  const [activeTab, setActiveTab] = useState<'TASKS' | 'HABITS' | 'NOTES' | 'REMINDERS'>(initialSubTab || 'TASKS');
   const [taskFilter, setTaskFilter] = useState<'ALL' | 'TODAY' | 'HIGH' | 'COMPLETED'>('ALL');
-  const [focusTask, setFocusTask] = useState<Task | null>(initialFocusTask || null);
   const [noteSearchQuery, setNoteSearchQuery] = useState('');
   const [taskLimit, setTaskLimit] = useState(LIST_PAGE_SIZE);
   const [noteLimit, setNoteLimit] = useState(LIST_PAGE_SIZE);
@@ -69,17 +68,6 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
   useEffect(() => setTaskLimit(LIST_PAGE_SIZE), [taskFilter]);
   useEffect(() => setNoteLimit(LIST_PAGE_SIZE), [noteSearchQuery]);
 
-  // This screen now stays mounted after its first visit (see App.tsx), so `initialFocusTask`
-  // only seeding `focusTask` via useState's initializer isn't enough — that only runs once,
-  // ever. Re-apply it whenever the prop actually changes (a new "Start Focus" tap from Home),
-  // and jump to the Focus segment the same way starting a session from within this screen does.
-  useEffect(() => {
-    if (initialFocusTask) {
-      setFocusTask(initialFocusTask);
-      setActiveTab('FOCUS');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialFocusTask]);
 
   const tasks = Object.values(db.tasks);
   const habits = Object.values(db.habits);
@@ -133,15 +121,11 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
       });
   }, [tasks, taskFilter]);
 
-  const handleStartFocus = (task: Task) => {
-    setFocusTask(task);
-    setActiveTab('FOCUS');
-  };
+  const handleStartFocus = (task: Task) => onStartFocus(task);
 
   const tabs = [
     { key: 'TASKS' as const, label: `Tasks (${tasks.filter((t) => t.status !== 'COMPLETED').length})`, icon: CheckSquare },
     { key: 'HABITS' as const, label: `Habits (${habits.length})`, icon: Sparkles },
-    { key: 'FOCUS' as const, label: 'Focus', icon: Timer },
     { key: 'NOTES' as const, label: `Notes (${notes.length})`, icon: StickyNote },
     { key: 'REMINDERS' as const, label: 'Reminders', icon: AlarmClock },
   ];
@@ -150,9 +134,15 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
     <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 56, gap: 16 }}>
       {/* Header */}
       <View className="flex-row items-center justify-between pt-1">
-        <View className="flex flex-col">
+        <View className="flex flex-col flex-1 pr-2">
           <Text className="text-xl font-bold text-ink-900 dark:text-ink-100 tracking-tight">Productivity</Text>
-          <Text className="text-xs text-ink-500">Tasks, daily habits & deep focus timers</Text>
+          <Text className="text-xs text-ink-500" numberOfLines={1}>Tasks, habits, notes & reminders</Text>
+        </View>
+
+        {/* Always present: Focus is no longer a segment, and a session that is still
+            running is otherwise invisible once the focus screen is closed. */}
+        <View className="mr-2">
+          <FocusEntryButton isDark={isDark} onPress={() => onStartFocus(null)} />
         </View>
 
         {activeTab === 'TASKS' && (
@@ -268,13 +258,6 @@ export const ProductivityScreen: React.FC<ProductivityScreenProps> = ({
               habits.map((h, i) => <HabitCard key={h.id} habit={h} index={i} onEdit={onEditHabit} />)
             )}
           </View>
-        </View>
-      )}
-
-      {activeTab === 'FOCUS' && (
-        <View className="flex flex-col gap-4">
-          <FocusTimer initialTask={focusTask} />
-          <FocusAnalytics />
         </View>
       )}
 

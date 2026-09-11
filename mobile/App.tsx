@@ -48,6 +48,7 @@ import { TaskDetailModal } from './src/components/productivity/TaskDetailModal';
 import { HabitFormModal } from './src/components/productivity/HabitFormModal';
 import { NoteEditorModal } from './src/components/productivity/NoteEditorModal';
 import { ReminderFormModal } from './src/components/productivity/ReminderFormModal';
+import { FocusOverlay } from './src/components/productivity/FocusOverlay';
 import { GlobalSearchOverlay } from './src/components/search/GlobalSearchOverlay';
 import { noteRepository } from './src/database/repositories/noteRepo';
 import { syncAllReminders } from './src/services/reminderService';
@@ -108,6 +109,7 @@ function MainApp() {
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [isFocusOpen, setIsFocusOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -219,9 +221,9 @@ function MainApp() {
     else if (tx.type === 'TRANSFER') setIsTransferModalOpen(true);
   };
 
-  const handleStartFocusFromTask = (task: Task) => {
+  const handleStartFocus = (task: Task | null) => {
     setFocusTask(task);
-    setActiveTab('PRODUCTIVITY');
+    setIsFocusOpen(true);
   };
 
   const handleSelectSearchResult = (result: SearchResult) => {
@@ -336,7 +338,7 @@ function MainApp() {
               setSelectedTask(task);
               setIsTaskModalOpen(true);
             }}
-            onStartFocusOnTask={handleStartFocusFromTask}
+            onStartFocusOnTask={handleStartFocus}
             onEditHabit={(habit) => {
               setSelectedHabit(habit);
               setIsHabitModalOpen(true);
@@ -398,7 +400,6 @@ function MainApp() {
               setSelectedHabit(habit);
               setIsHabitModalOpen(true);
             }}
-            initialFocusTask={focusTask}
             onOpenNewNote={() => {
               setSelectedNote(null);
               setIsNoteModalOpen(true);
@@ -407,6 +408,7 @@ function MainApp() {
               setSelectedNote(note);
               setIsNoteModalOpen(true);
             }}
+            onStartFocus={handleStartFocus}
             onOpenNewReminder={() => {
               setSelectedReminder(null);
               setIsReminderModalOpen(true);
@@ -532,7 +534,7 @@ function MainApp() {
           setIsTaskModalOpen(false);
           setSelectedTask(null);
         }}
-        onStartFocus={handleStartFocusFromTask}
+        onStartFocus={handleStartFocus}
       />
 
       <HabitFormModal
@@ -578,6 +580,12 @@ function MainApp() {
           setIsReminderModalOpen(false);
           setSelectedReminder(null);
         }}
+      />
+
+      <FocusOverlay
+        isOpen={isFocusOpen}
+        task={focusTask}
+        onClose={() => setIsFocusOpen(false)}
       />
 
       <GlobalSearchOverlay
